@@ -137,7 +137,7 @@ export default function BancaInternet() {
 
 // Estilos (se mantienen igual, solo agregué un estilo de error)
 const styles = {
-  container: { backgroundColor: "#7ac043", minHeight: "100vh", display: "flex", justifyContent: "center", alignItems: "center", fontFamily: 'Arial, Helvetica, sans-serif' },
+  container: { backgroundColor: "#7AB83F", minHeight: "100vh", display: "flex", justifyContent: "center", alignItems: "center", fontFamily: 'Arial, Helvetica, sans-serif' },
   wrapper: { width: "100%", maxWidth: "850px", padding: "20px", position: 'relative' },
   content: { display: "flex", gap: "50px", alignItems: "flex-start" },
   

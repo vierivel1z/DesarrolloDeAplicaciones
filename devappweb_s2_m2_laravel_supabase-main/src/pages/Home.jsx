@@ -44,7 +44,7 @@ export default function Home() {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
             <span style={{ fontSize: '12px', cursor: 'pointer' }}>📍 Red de Agencias</span>
-            <span style={{ fontSize: '12px', cursor: 'pointer' }}>👤 Regístrate +</span>
+            <span style={{ fontSize: '12px', cursor: 'pointer' }}><Link to="/registro">👤 Regístrate +</Link></span>
             
             <button style={styles.btnOutlineBlue}>
               <strong style={{ fontSize: '14px', marginRight: '5px' }}>S/</strong> Solicita tu<br/>préstamo
