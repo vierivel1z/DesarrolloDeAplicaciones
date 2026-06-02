@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../../services/api"; // 1. Reemplazamos axios crudo por nuestra instancia
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function Dashboard() {
@@ -8,11 +8,8 @@ export default function Dashboard() {
   const [user, setUser] = useState(null);
   const [cuentas, setCuentas] = useState([]);
   const [saldoTotal, setSaldoTotal] = useState(0);
-  
-  // NUEVO ESTADO: Controla qué pantalla estamos viendo
   const [activeView, setActiveView] = useState('resumen'); 
 
-  // Datos para el gráfico
   const dataGrafico = [
     { mes: 'Ene', saldo: 12000 }, { mes: 'Feb', saldo: 11500 },
     { mes: 'Mar', saldo: 14200 }, { mes: 'Abr', saldo: 13800 },
@@ -20,31 +17,48 @@ export default function Dashboard() {
   ];
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
+    // 2. Leemos la llave unificada 'GNB_USER' que guardamos al iniciar sesión
+    const storedUser = localStorage.getItem('GNB_USER');
+    
     if (storedUser) {
       const parsedUser = JSON.parse(storedUser);
       setUser(parsedUser);
 
-      axios.get(`http://localhost:8000/api/cuentas/${parsedUser.id}`)
+      // 3. ¡Mucho más limpio y seguro! 
+      // El interceptor adjunta el Token. Laravel sabe exactamente qué usuario es.
+      api.get('/cuentas')
         .then(res => {
+          // El controlador modificado devuelve directamente el arreglo de cuentas
           setCuentas(res.data);
+          
           const totalSoles = res.data
             .filter(c => c.moneda === 'S/')
             .reduce((acc, current) => acc + parseFloat(current.saldo), 0);
           setSaldoTotal(totalSoles);
         })
-        .catch(err => console.error("Error cargando cuentas:", err));
+        .catch(err => {
+          console.error("Error cargando cuentas:", err);
+          // Si el token expiró o es inválido, limpiamos y mandamos al login
+          if (err.response && err.response.status === 401) {
+            handleLogout();
+          }
+        });
     } else {
       navigate('/banca-por-internet');
     }
   }, [navigate]);
 
+  // 4. Limpieza correcta del localStorage al cerrar sesión
   const handleLogout = () => {
-    localStorage.removeItem('user');
+    localStorage.removeItem('GNB_TOKEN');
+    localStorage.removeItem('GNB_USER');
     navigate('/banca-por-internet');
   };
 
   if (!user) return null;
+
+  // El resto de tu render (return div, header, layout, mainContent, styles) 
+  // se mantiene EXACTAMENTE IGUAL.
 
   return (
     <div style={styles.page}>

@@ -15,7 +15,7 @@ return new class extends Migration
         $table->id();
         $table->foreignId('user_id')->constrained()->onDelete('cascade');
         $table->string('tipo_cuenta');
-        $table->string('numero_cuenta');
+        $table->string('numero_cuenta')->unique(); // 👈 Añade ->unique()
         $table->decimal('saldo', 10, 2);
         $table->string('moneda')->default('S/');
         $table->timestamps();

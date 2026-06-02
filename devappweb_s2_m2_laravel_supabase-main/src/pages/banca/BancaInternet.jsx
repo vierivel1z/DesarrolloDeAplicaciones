@@ -1,34 +1,36 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios"; // 1. Importamos Axios
+import api from "../../services/api"; // 1. Cambiamos axios por nuestra instancia configurada
 
 export default function BancaInternet() {
   const navigate = useNavigate();
 
-  // 2. Creamos estados para capturar los inputs y manejar errores
+  // 2. Estados para capturar inputs y errores
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
-  // 3. Actualizamos la función handleLogin para usar Axios
+  // 3. Función handleLogin actualizada
   const handleLogin = async (e) => {
     e.preventDefault();
-    setErrorMessage(""); // Limpiamos errores anteriores
+    setErrorMessage(""); 
 
     try {
-      // Hacemos la petición POST al API de Laravel
-      // (Usuario -> email, Clave Token -> password)
-      const response = await axios.post("http://localhost:8000/api/login", {
+      // Hacemos la petición POST usando nuestra instancia 'api'
+      const response = await api.post("/login", {
         email: email,
         password: password,
       });
 
-      // Si es exitoso, Laravel nos responde con status: true
+      // Validamos el 'status' de éxito que programamos en Laravel
       if (response.data.status) {
         console.log("Login Exitoso:", response.data);
         
-        // Opcional: Guardar datos del usuario en localStorage para el Dashboard
-        localStorage.setItem('user', JSON.stringify(response.data.user));
+        // 🔑 ¡PASO CRUCIAL! Guardamos el Bearer Token en el localStorage
+        localStorage.setItem('GNB_TOKEN', response.data.access_token);
+        
+        // Guardamos los datos del usuario para pintar el saludo en el Dashboard
+        localStorage.setItem('GNB_USER', JSON.stringify(response.data.user));
 
         // Redirigimos al Dashboard
         navigate('/dashboard');
@@ -37,15 +39,18 @@ export default function BancaInternet() {
     } catch (error) {
       console.error("Error en login:", error.response);
       
-      // Capturamos el mensaje de error que definimos en Laravel (401)
-      if (error.response && error.response.status === 401) {
+      // Capturamos el error estructurado de Laravel
+      if (error.response && error.response.data && error.response.data.message) {
         setErrorMessage(error.response.data.message);
+      } else if (error.response && error.response.status === 401) {
+        setErrorMessage("Usuario o Clave Token incorrectos.");
       } else {
-        setErrorMessage("Ocurrió un error inesperado. Intente más tarde.");
+        setErrorMessage("No se pudo conectar con el servidor bancario. Intente más tarde.");
       }
     }
   };
 
+  // El resto de tu componente (return div, form, styles) se queda EXACTAMENTE IGUAL
   return (
     <div style={styles.container}>
       

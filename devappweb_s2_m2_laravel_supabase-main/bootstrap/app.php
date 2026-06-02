@@ -12,7 +12,17 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        
+        // 👇 ESTO CONFIGURA LAS SESIONES DE SANCTUM PARA REACT
+        $middleware->api(prepend: [
+            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+        ]);
+
+        // 👇 ESTA FUNCIÓN HABILITA EL CORS DE FORMA MANUAL PARA TU PUERTO DE REACT
+        $middleware->validateCsrfTokens(except: [
+            'api/*', // Evita problemas de tokens CSRF en las rutas de la API
+        ]);
+        
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

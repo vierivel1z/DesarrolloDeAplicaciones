@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\User;
+use App\Models\Cuenta;
 
 class AuthController extends Controller
 {
@@ -18,13 +20,23 @@ class AuthController extends Controller
 
         // 2. Intentar loguear con Laravel
         if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
+            /** @var \App\Models\User $user */
             $user = Auth::user();
             
-            // Retornamos éxito
+            // 👇 ¡AQUÍ ESTÁ LA CLAVE! Generamos el token para React
+            $token = $user->createToken('auth_token')->plainTextToken;
+            
+            // Retornamos éxito junto con el token
             return response()->json([
                 'status' => true,
                 'message' => 'Login exitoso',
-                'user' => $user
+                'access_token' => $token, // 👈 React guardará esto
+                'token_type' => 'Bearer',
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email
+                ]
             ], 200);
         }
 
@@ -45,25 +57,34 @@ class AuthController extends Controller
         ]);
 
         // 2. Creamos al usuario
-        $user = \App\Models\User::create([
+        $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => bcrypt($request->password)
         ]);
 
-        // 3. ¡Magia! Le creamos una cuenta bancaria automática con saldo de bienvenida
-        \App\Models\Cuenta::create([
+        // 3. Mantener tu lógica: cuenta bancaria automática en Supabase
+        Cuenta::create([
             'user_id' => $user->id,
             'tipo_cuenta' => 'Cuenta Ahorro Digital',
             'numero_cuenta' => '104-' . rand(100000, 999999) . '-' . rand(10, 99),
-            'saldo' => 1500.00, // S/ 1500 de regalo para probar
+            'saldo' => 1500.00, // S/ 1500 de regalo
             'moneda' => 'S/'
         ]);
 
+        // 👇 Generamos el token inmediatamente para que tras registrarse ya quede logueado en React
+        $token = $user->createToken('auth_token')->plainTextToken;
+
         return response()->json([
             'status' => true,
-            'message' => 'Cuenta creada exitosamente',
-            'user' => $user
-        ], 200);
+            'message' => 'Cuenta registrada exitosamente',
+            'access_token' => $token, // 👈 También enviamos token aquí
+            'token_type' => 'Bearer',
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email
+            ]
+        ], 201); // 201 significa "Recurso Creado"
     }
 }

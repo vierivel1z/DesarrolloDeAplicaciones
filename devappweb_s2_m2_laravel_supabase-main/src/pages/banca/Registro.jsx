@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import axios from "axios";
+import api from "../../services/api"; // 1. Usamos nuestra instancia configurada de Axios
 
 export default function Registro() {
   const navigate = useNavigate();
@@ -14,25 +14,38 @@ export default function Registro() {
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    setMensajeError(""); // Limpiamos errores
+    setMensajeError(""); 
 
     try {
-      const response = await axios.post("http://localhost:8000/api/register", {
+      // 2. Apuntamos al endpoint usando 'api'
+      const response = await api.post("/register", {
         name, email, password
       });
       
       if (response.data.status) {
-        // En lugar de alert(), activamos el Modal
+        // 🔑 ¡MAGIA DE SESIÓN TRAS REGISTRO!
+        // Guardamos el token y el usuario que Laravel generó automáticamente
+        localStorage.setItem('GNB_TOKEN', response.data.access_token);
+        localStorage.setItem('GNB_USER', JSON.stringify(response.data.user));
+
+        // Activamos el Modal de éxito
         setShowModal(true);
       }
     } catch (error) {
-      setMensajeError("Error al registrar. Revisa los datos o el correo ya está en uso.");
+      if (error.response && error.response.data && error.response.data.errors) {
+        // Captura errores específicos de validación de Laravel (ej: correo ya tomado)
+        const errores = error.response.data.errors;
+        setMensajeError(Object.values(errores).flat().join(" "));
+      } else {
+        setMensajeError("El correo ya está en uso o los datos son inválidos.");
+      }
     }
   };
 
-  const irAlLogin = () => {
+  const irAlDashboard = () => {
     setShowModal(false);
-    navigate('/banca-por-internet'); // Lo enviamos al login verde
+    // 🚀 Al hacer clic, va DIRECTO al Dashboard sin pasar por el Login verde
+    navigate('/dashboard'); 
   };
 
   return (
@@ -56,22 +69,22 @@ export default function Registro() {
         </div>
       </div>
 
-      {/* MODAL DE ÉXITO (Solo se muestra si showModal es true) */}
+      {/* MODAL DE ÉXITO */}
       {showModal && (
         <div style={styles.modalOverlay}>
           <div style={styles.modalContent}>
-            {/* Círculo con el Check */}
             <div style={styles.checkCircle}>
               <span style={{ fontSize: '40px', color: 'white' }}>✓</span>
             </div>
             
             <h2 style={{ color: '#333', marginTop: '20px', marginBottom: '10px' }}>¡Registro Exitoso!</h2>
             <p style={{ color: '#666', lineHeight: '1.5', marginBottom: '25px' }}>
-              Tu usuario ha sido creado. Te hemos asignado una <strong>Cuenta de Ahorro Digital</strong> con un bono de bienvenida de <strong>S/ 1,500.00</strong> para que pruebes la plataforma.
+              Tu usuario ha sido creado. Te hemos asignado una <strong>Cuenta de Ahorro Digital</strong> con un bono de bienvenida de <strong>S/ 1,500.00</strong> en Supabase para que pruebes la plataforma.
             </p>
             
-            <button onClick={irAlLogin} style={styles.btnVerde}>
-              Ir a Iniciar Sesión
+            {/* 3. Cambiamos la función al botón para ir al Dashboard */}
+            <button onClick={irAlDashboard} style={styles.btnVerde}>
+              Ir a mi Cuenta Bancaria
             </button>
           </div>
         </div>
@@ -81,6 +94,7 @@ export default function Registro() {
   );
 }
 
+// Los estilos (const styles) se quedan EXACTAMENTE IGUALES a como los tenías.
 // ESTILOS
 const styles = {
   input: { padding: "12px", border: "1px solid #ccc", borderRadius: "4px", fontSize: "14px", outline: 'none' },

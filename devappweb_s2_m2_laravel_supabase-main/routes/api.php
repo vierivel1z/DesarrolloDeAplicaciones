@@ -1,24 +1,35 @@
 <?php
-use App\Http\Controllers\CuentaController;
+
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\CuentaController;
 
-// Ruta para el listado general de cuentas
-Route::get('/cuentas', [CuentaController::class, 'index']);
-
-// 👇 ¡ESTA ES LA RUTA CLAVE QUE FALTABA PARA TU DASHBOARD! 👇
-// React pide las cuentas filtradas por el ID del usuario
-Route::get('/cuentas/{userId}', function ($userId) {
-    return \App\Models\Cuenta::where('user_id', $userId)->get();
-});
-
-// Ruta para los movimientos de una cuenta
-Route::get('/cuentas/{id}/movimientos', [CuentaController::class, 'movimientos']);
-
-Route::post('/cuentas', [CuentaController::class, 'store']);
-
-// Ruta de Login
+/*
+|--------------------------------------------------------------------------
+| Rutas Públicas (No requieren inicio de sesión)
+|--------------------------------------------------------------------------
+*/
 Route::post('/login', [AuthController::class, 'login']);
-
-// Ruta de Registro
 Route::post('/register', [AuthController::class, 'register']);
+
+
+/*
+|--------------------------------------------------------------------------
+| Rutas Protegidas (Solo accesibles con un Token válido desde React)
+|--------------------------------------------------------------------------
+*/
+Route::middleware('auth:sanctum')->group(function () {
+
+    // Obtener las cuentas del usuario autenticado (¡Mucho más seguro!)
+    Route::get('/cuentas', [CuentaController::class, 'index']);
+    
+    // Si necesitas filtrar estrictamente por un ID desde el Dashboard:
+    Route::get('/cuentas/usuario/{userId}', [CuentaController::class, 'getCuentasByUsuario']);
+
+    // Detalle de movimientos y creación de cuentas
+    Route::get('/cuentas/{id}/movimientos', [CuentaController::class, 'movimientos']);
+    Route::post('/cuentas', [CuentaController::class, 'store']);
+    
+    // 👇 Aquí puedes añadir más adelante la ruta de comunicación interna de tu diagrama:
+    // Route::post('/scoring/evaluar', [ScoringController::class, 'evaluar']);
+});
