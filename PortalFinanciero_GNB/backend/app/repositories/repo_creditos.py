@@ -3,6 +3,9 @@
 Alcance: solo Microempresa (ME) y Consumo (CO).
 """
 from decimal import Decimal
+import math
+from datetime import datetime, date
+from dateutil.relativedelta import relativedelta
 
 from sqlalchemy import text
 from sqlalchemy.engine import Connection
@@ -12,6 +15,21 @@ from app.repositories.repo_cuentas import PERIODO_CARTERA
 # codtipocredito del portal -> codtipocredito en dproducto
 MAPA_TIPO_CREDITO = {"ME": "01", "CO": "03"}  # ME=Microempresa, CO=Consumo
 ESTADO_EN_EVALUACION = "01"  # dsolicitudestado.codsolicitudestado
+
+def listar_solicitudes(conn: Connection) -> list[dict]:
+    """Lista todas las solicitudes de crédito."""
+    sql = text(
+        """
+        SELECT s.pksolicitud as id, s.codsolicitud, s.pkcliente, c.nomcliente, c.numerodocumentoidentidad,
+               s.montosolicitudcredito as monto, s.plazosolicitudcredito as plazo, s.fechasolicitudcredito as fecha,
+               e.dessolicitudestado as estado, s.pksolicitudestado
+        FROM dsolicitud s
+        JOIN dcliente c ON c.pkcliente = s.pkcliente
+        JOIN dsolicitudestado e ON e.pksolicitudestado = s.pksolicitudestado
+        ORDER BY s.pksolicitud DESC
+        """
+    )
+    return [dict(r) for r in conn.execute(sql).mappings().all()]
 
 
 def _pk_producto_por_tipo(conn: Connection, cod_tipo_producto: str) -> int | None:
@@ -88,12 +106,16 @@ def crear_solicitud(
     codtipocredito: str,
     codactividadeconomica: str,
     montoingresoneto: Decimal,
+    con_seguro: bool = True,
+    fecha_desembolso: str | None = None,
+    dia_pago: int | None = None,
 ) -> dict:
     """Registra una solicitud en dsolicitud (estado inicial 'En Evaluación').
 
     pksolicitud proviene de dsolicitud_pksolicitud_seq y codsolicitud se deriva
     con 'SOL' || LPAD(currval(...)::text, 7, '0').
     """
+    tea = Decimal('0.4092') if con_seguro else Decimal('0.4392')
     cod_tipo_producto = MAPA_TIPO_CREDITO[codtipocredito]
     pkproducto = _pk_producto_por_tipo(conn, cod_tipo_producto)
     if pkproducto is None:
@@ -126,6 +148,7 @@ def crear_solicitud(
                 fechasolicitudcredito, codususol,
                 flaglibreamortizacioncredito, nrodiasgracia,
                 pkactividadeconomicasolicitud, pkagencia, pkasesor,
+                tasainterescompensatoria, diafechafija, fechaaprobacioncredito,
                 fechahoracreacion, fechahoraultmodificacion, fecultactualizacion
             ) VALUES (
                 nextval('dsolicitud_pksolicitud_seq'),
@@ -137,6 +160,7 @@ def crear_solicitud(
                 CURRENT_DATE, 'HB',
                 'N', 0,
                 :pkactividad, :pkagencia, :pkasesor,
+                :tea, :dia_pago, :fecha_desembolso,
                 now(), now(), now()
             )
             RETURNING pksolicitud, codsolicitud
@@ -152,7 +176,188 @@ def crear_solicitud(
             "pkactividad": pkactividad,
             "pkagencia": pkagencia,
             "pkasesor": pkasesor,
+            "tea": tea,
+            "dia_pago": dia_pago,
+            "fecha_desembolso": datetime.strptime(fecha_desembolso, "%Y-%m-%d").date() if fecha_desembolso else None,
         },
     ).mappings().first()
     conn.commit()
     return {"pksolicitud": row["pksolicitud"], "codsolicitud": row["codsolicitud"].strip()}
+
+def evaluar_solicitud(conn: Connection, pksolicitud: int) -> dict:
+    """Genera cronograma preliminar y aprueba solicitud."""
+    # Obtenemos datos de la solicitud
+    sol = conn.execute(
+        text("SELECT * FROM dsolicitud WHERE pksolicitud = :pk"),
+        {"pk": pksolicitud}
+    ).mappings().first()
+    if not sol:
+        raise ValueError("Solicitud no encontrada")
+
+    pkestado_aprobado = _pk_estado_solicitud(conn, "02") # 02 = Aprobado (asumiendo) o actualizamos a mano
+    if not pkestado_aprobado:
+        # Fallback al string '02' si no hay funcion
+        pkestado_aprobado = conn.execute(text("SELECT pksolicitudestado FROM dsolicitudestado WHERE codsolicitudestado='02'")).scalar()
+    
+    conn.execute(
+        text("UPDATE dsolicitud SET pksolicitudestado = :est WHERE pksolicitud = :pk"),
+        {"est": pkestado_aprobado, "pk": pksolicitud}
+    )
+
+    tea = sol["tasainterescompensatoria"] or Decimal('0.4392')
+    monto = sol["montosolicitudcredito"]
+    plazo = sol["plazosolicitudcredito"]
+    dia_pago = sol["diafechafija"] or 1
+    fecha_desembolso = sol["fechaaprobacioncredito"] or date.today()
+
+    # Cálculo TEM y Cuota Fija Francesa
+    tem = Decimal(math.pow(1 + float(tea), 1/12.0) - 1)
+    if tem == 0:
+        cuota = monto / plazo
+    else:
+        cuota = monto * (tem * Decimal(math.pow(1 + float(tem), plazo))) / (Decimal(math.pow(1 + float(tem), plazo)) - 1)
+    cuota = round(cuota, 2)
+
+    cronograma = []
+    saldo = monto
+    fecha_pago = fecha_desembolso
+    # Ir al primer mes
+    for _ in range(plazo):
+        # Avanzar 1 mes
+        fecha_pago = fecha_pago + relativedelta(months=1)
+        # Ajustar día de pago
+        try:
+            fecha_pago = fecha_pago.replace(day=dia_pago)
+        except ValueError:
+            # Si el día es 31 y el mes tiene 30, ir al último día del mes
+            fecha_pago = fecha_pago + relativedelta(day=31)
+
+        interes = round(saldo * tem, 2)
+        capital = cuota - interes
+        if saldo - capital < 0:
+            capital = saldo
+            cuota = capital + interes
+            saldo = Decimal(0)
+        else:
+            saldo -= capital
+
+        cronograma.append({
+            "nrocuota": len(cronograma) + 1,
+            "fecha_vencimiento": fecha_pago.strftime("%Y-%m-%d"),
+            "monto_cuota": cuota,
+            "capital": capital,
+            "interes": interes,
+            "saldo_capital": saldo
+        })
+    conn.commit()
+    return {"cronograma": cronograma, "monto_total": sum(c["monto_cuota"] for c in cronograma)}
+
+def desembolsar_solicitud(conn: Connection, pksolicitud: int) -> dict:
+    """Crea la cuenta de crédito, el cronograma en fplanpagomes y abona al ahorro."""
+    sol = conn.execute(
+        text("SELECT * FROM dsolicitud WHERE pksolicitud = :pk"),
+        {"pk": pksolicitud}
+    ).mappings().first()
+    if not sol:
+        raise ValueError("Solicitud no encontrada")
+
+    pkestado_desembolsado = conn.execute(text("SELECT pksolicitudestado FROM dsolicitudestado WHERE codsolicitudestado='03'")).scalar()
+    conn.execute(text("UPDATE dsolicitud SET pksolicitudestado = :est WHERE pksolicitud = :pk"), {"est": pkestado_desembolsado, "pk": pksolicitud})
+
+    # Crear cuenta credito
+    row_credito = conn.execute(
+        text("INSERT INTO dcuentacredito (codcuentacredito, codlineacredito, pkcliente) VALUES ('CRE' || :pk, 'CR', :cli) RETURNING pkcuentacredito"),
+        {"pk": pksolicitud, "cli": sol["pkcliente"]}
+    ).first()
+    pkcuentacredito = row_credito[0]
+
+    eval_result = evaluar_solicitud(conn, pksolicitud)
+    cronograma = eval_result["cronograma"]
+
+    # Fplanpagomes
+    pkmoneda = sol["pkmoneda"]
+    pkproducto = sol["pkproducto"]
+    pkcliente = sol["pkcliente"]
+    pkagencia = sol["pkagencia"]
+    pkasesor = sol["pkasesor"]
+
+    # fagcuentacredito
+    fecha_desembolso = sol["fechaaprobacioncredito"] or date.today()
+    tea = sol["tasainterescompensatoria"] or Decimal('0.4392')
+
+    conn.execute(
+        text('''
+        INSERT INTO fagcuentacredito (
+            periodomes, pkcuentacredito, pksolicitud, pkestadocredito, nrocuotas,
+            montoaprobadocredito, montocapitaldesembolsado, pkproducto, pkmoneda,
+            tasainterescompensatoria, tasainteresmoratoria, fechadesembolsocredito,
+            pkcliente, pkagencia, pkasesor, montosaldocapital, montosaldocliente
+        ) VALUES (
+            :periodo, :pkcc, :pksol, 1, :plazo,
+            :monto, :monto, :pkprod, :pkmon,
+            :tea, 0.0, :fechades,
+            :cli, :age, :ase, :monto, :monto
+        )
+        '''),
+        {
+            "periodo": PERIODO_CARTERA, "pkcc": pkcuentacredito, "pksol": pksolicitud, "plazo": sol["plazosolicitudcredito"],
+            "monto": sol["montosolicitudcredito"], "pkprod": pkproducto, "pkmon": pkmoneda,
+            "tea": tea, "fechades": fecha_desembolso, "cli": pkcliente, "age": pkagencia, "ase": pkasesor
+        }
+    )
+
+    for c in cronograma:
+        conn.execute(
+            text('''
+            INSERT INTO fplanpagomes (
+                periodomes, pkcuentacredito, codplanpago, nrocuota, pksolicitud,
+                pkestadocredito, pkproducto, pkmoneda, pkcliente, pkagencia, pkasesor,
+                fechavencimientopagocuota, montocuota, montosaldo,
+                montointeresprogramado, montocapitalprogramado, montosaldocapital
+            ) VALUES (
+                :periodo, :pkcc, :cod, :nro, :pksol,
+                1, :pkprod, :pkmon, :cli, :age, :ase,
+                :fechaven, :cuota, :cuota,
+                :interes, :capital, :saldocap
+            )
+            '''),
+            {
+                "periodo": PERIODO_CARTERA, "pkcc": pkcuentacredito, "cod": f"P{pksolicitud}-{c['nrocuota']}",
+                "nro": c['nrocuota'], "pksol": pksolicitud, "pkprod": pkproducto, "pkmon": pkmoneda,
+                "cli": pkcliente, "age": pkagencia, "ase": pkasesor,
+                "fechaven": c["fecha_vencimiento"], "cuota": c["monto_cuota"],
+                "interes": c["interes"], "capital": c["capital"], "saldocap": c["saldo_capital"]
+            }
+        )
+
+    # Abono a cuenta de ahorros
+    cuenta_ahorro = conn.execute(
+        text("SELECT pkcuentaahorro FROM dcuentaahorro WHERE pkcliente = :cli LIMIT 1"),
+        {"cli": pkcliente}
+    ).scalar()
+    
+    if cuenta_ahorro:
+        conn.execute(
+            text("UPDATE fcuentaahorro SET montosaldocapitaltotal = montosaldocapitaltotal + :monto WHERE pkcuentaahorro = :pkah"),
+            {"monto": sol["montosolicitudcredito"], "pkah": cuenta_ahorro}
+        )
+        conn.execute(
+            text('''
+            INSERT INTO foperaciones (
+                codtipkar, pkcuentacredito, pkcuentaahorro, codkardex, pkconceptooperacion,
+                fechahoraoperacion, periododia, pktipooperacion, pkmoneda,
+                pkagenciaorigen, codtipoegresoingreso, montooperacion
+            ) VALUES (
+                'DE', :pkcc, :pkah, 'DESEMBOLSO', 1,
+                now(), 20260202, 1, :pkmon,
+                :age, 'I', :monto
+            )
+            '''),
+            {
+                "pkcc": pkcuentacredito, "pkah": cuenta_ahorro, "pkmon": pkmoneda, "age": pkagencia,
+                "monto": sol["montosolicitudcredito"]
+            }
+        )
+
+    conn.commit()
+    return {"mensaje": "Crédito desembolsado exitosamente", "pkcuentacredito": pkcuentacredito}

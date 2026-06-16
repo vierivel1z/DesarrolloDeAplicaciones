@@ -14,6 +14,9 @@ import TransferenciaPage from './pages/TransferenciaPage.jsx'
 import PagoCreditoPage from './pages/PagoCreditoPage.jsx'
 import PagoServiciosPage from './pages/PagoServiciosPage.jsx'
 import SolicitarCreditoPage from './pages/SolicitarCreditoPage.jsx'
+import AdminClientesPage from './pages/AdminClientesPage.jsx'
+import AdminCreditosPage from './pages/AdminCreditosPage.jsx'
+import AdminPowerBiPage from './pages/AdminPowerBiPage.jsx'
 
 // Layout para las rutas autenticadas: cabecera BBVA + contenido.
 function PrivateLayout({ children }) {
@@ -47,6 +50,11 @@ export default function App() {
       <Route path="/operaciones/pago-credito/:cod" element={<PrivateLayout><PagoCreditoPage /></PrivateLayout>} />
       <Route path="/operaciones/pago-servicios" element={<PrivateLayout><PagoServiciosPage /></PrivateLayout>} />
       <Route path="/creditos/solicitar" element={<PrivateLayout><SolicitarCreditoPage /></PrivateLayout>} />
+
+      {/* Rutas de Administrador */}
+      <Route path="/admin/clientes" element={<PrivateLayout><AdminClientesPage /></PrivateLayout>} />
+      <Route path="/admin/creditos" element={<PrivateLayout><AdminCreditosPage /></PrivateLayout>} />
+      <Route path="/admin/powerbi" element={<PrivateLayout><AdminPowerBiPage /></PrivateLayout>} />
 
       <Route path="*" element={<Navigate to="/inicio" replace />} />
     </Routes>

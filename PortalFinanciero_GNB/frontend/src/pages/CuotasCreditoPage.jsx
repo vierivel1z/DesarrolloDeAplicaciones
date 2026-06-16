@@ -20,8 +20,10 @@ export default function CuotasCreditoPage() {
   const columns = [
     { key: 'nrocuota', header: 'N° Cuota', render: (c) => <strong>{c.nrocuota}</strong> },
     { key: 'fecha_vencimiento', header: 'Vencimiento', render: (c) => formatDate(c.fecha_vencimiento) },
-    { key: 'monto_cuota', header: 'Monto cuota', align: 'right', render: (c) => <Money value={c.monto_cuota} /> },
-    { key: 'monto_saldo', header: 'Saldo', align: 'right', render: (c) => <Money value={c.monto_saldo} /> },
+    { key: 'monto_cuota', header: 'Cuota', align: 'right', render: (c) => <Money value={c.monto_cuota} /> },
+    { key: 'capital', header: 'Capital', align: 'right', render: (c) => <Money value={c.capital} /> },
+    { key: 'interes', header: 'Interés', align: 'right', render: (c) => <Money value={c.interes} /> },
+    { key: 'saldo_capital', header: 'Saldo Capital', align: 'right', render: (c) => <Money value={c.saldo_capital} /> },
     { key: 'dias_atraso', header: 'Días atraso', align: 'center', render: (c) => (c.dias_atraso > 0 ? <Badge estado={`${c.dias_atraso}`} tone="red" /> : '0') },
     { key: 'estado', header: 'Estado', render: (c) => <Badge estado={c.pagada ? 'Pagada' : (c.estado === '02' ? 'Vencida' : 'Vigente')} /> },
   ]

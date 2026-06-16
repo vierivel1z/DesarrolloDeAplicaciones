@@ -22,12 +22,14 @@ export default function LoginPage() {
     if (isAuthenticated) navigate('/inicio', { replace: true })
   }, [isAuthenticated, navigate])
 
+  const isAdmin = tarjeta.trim().toLowerCase() === 'admin'
+
   const onSubmit = async (e) => {
     e.preventDefault()
     setError(null)
 
-    // El DNI se valida en el front (dato de verificación del titular).
-    if (!/^\d{8}$/.test(dni.trim())) {
+    // El DNI se valida en el front solo para clientes normales.
+    if (!isAdmin && !/^\d{8}$/.test(dni.trim())) {
       setError('Ingresa un DNI válido de 8 dígitos.')
       return
     }
@@ -76,6 +78,8 @@ export default function LoginPage() {
             </div>
           </div>
 
+          {/* DNI: oculto para el administrador */}
+          {!isAdmin && (
           <div className="hb-field">
             <label htmlFor="dni">DNI</label>
             <div style={{ position: 'relative' }}>
@@ -94,6 +98,7 @@ export default function LoginPage() {
               />
             </div>
           </div>
+          )}
 
           <div className="hb-field">
             <label htmlFor="password">Clave de Internet</label>
@@ -119,9 +124,15 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <p className="hb-login-hint">
-          Prueba: tarjeta <strong>cli000001</strong> · DNI <strong>12345678</strong> · clave <strong>demo1234</strong>
-        </p>
+        {isAdmin ? (
+          <p className="hb-login-hint">
+            Acceso de administrador: tarjeta <strong>admin</strong> · clave <strong>admin1234</strong>
+          </p>
+        ) : (
+          <p className="hb-login-hint">
+            Prueba: tarjeta <strong>cli000001</strong> · DNI <strong>12345678</strong> · clave <strong>demo1234</strong>
+          </p>
+        )}
 
         <div style={{ textAlign: 'center', marginTop: 16 }}>
           <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--hb-muted)', fontSize: 13 }}>
