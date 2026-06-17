@@ -9,6 +9,7 @@ from app.controllers import ctrl_admin
 from app.core.cfg_database import get_db
 from app.core.cfg_security import decodificar_token
 from app.schemas.sch_creditos import SolicitudCreditoRequest
+from app.schemas.sch_admin import ClienteCrearRequest
 from app.repositories import repo_creditos
 from app.core.cfg_security import decodificar_token
 
@@ -50,6 +51,21 @@ def stats(conn: Connection = Depends(get_db)):
 def clientes(conn: Connection = Depends(get_db)):
     """Retorna todos los clientes con conteo de cuentas y créditos."""
     return ctrl_admin.listar_clientes(conn)
+
+
+@router.get("/clientes/buscar", summary="Buscar clientes por query (nombre, documento o código)")
+def buscar_clientes(q: str, conn: Connection = Depends(get_db)):
+    """Busca clientes por coincidencia."""
+    return ctrl_admin.buscar_clientes(conn, q)
+
+
+@router.post("/clientes/crear", summary="Registrar nuevo cliente en ventanilla")
+def crear_cliente(req: ClienteCrearRequest, conn: Connection = Depends(get_db)):
+    """Registra un nuevo cliente con cuenta de ahorro y acceso a Homebanking."""
+    try:
+        return ctrl_admin.crear_cliente(conn, req)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.get("/solicitudes", summary="Listar todas las solicitudes")

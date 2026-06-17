@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { LogOut, UserCog, Eye, EyeOff, ChevronDown, BarChart3, Users, Database, LayoutDashboard } from 'lucide-react'
+import { LogOut, UserCog, Eye, EyeOff, ChevronDown, BarChart3, Users, Database, LayoutDashboard, CreditCard } from 'lucide-react'
 import { useHBAuth } from '../../hooks/useHBAuth.js'
 import { useUI } from '../../context/UIContext.jsx'
 import Logo from '../ui/Logo.jsx'
@@ -17,6 +17,7 @@ const TABS_CLIENTE = [
 const TABS_ADMIN = [
   { label: 'Dashboard', to: '/inicio', match: ['/inicio'], icon: LayoutDashboard },
   { label: 'Clientes', to: '/admin/clientes', match: ['/admin/clientes'], icon: Users },
+  { label: 'Solicitudes', to: '/admin/creditos', match: ['/admin/creditos'], icon: CreditCard },
   { label: 'Power BI', to: '/admin/powerbi', match: ['/admin/powerbi'], icon: BarChart3 },
 ]
 

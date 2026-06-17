@@ -194,6 +194,9 @@ function AdminDashboard() {
         <button className="admin-ql-btn" onClick={() => navigate('/admin/clientes')}>
           <Users size={20} /> Ver todos los clientes
         </button>
+        <button className="admin-ql-btn admin-ql-btn--secondary" onClick={() => navigate('/admin/creditos')}>
+          <CreditCard size={20} /> Ver solicitudes de crédito
+        </button>
         <button className="admin-ql-btn admin-ql-btn--secondary" onClick={() => navigate('/admin/powerbi')}>
           <BarChart3 size={20} /> Guía de conexión Power BI
         </button>

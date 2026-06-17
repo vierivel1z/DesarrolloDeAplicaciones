@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="1272px" preserveAspectRatio="none" style="width:914px;height:1272px;" version="1.1" viewBox="0 0 914 1272" width="914px" zoomAndPan="magnify"><defs><filter height="300%" id="fy9d62rzg0ig7" width="300%" x="-1" y="-1"><feGaussianBlur result="blurOut" stdDeviation="2.0"/><feColorMatrix in="blurOut" result="blurOut2" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .4 0"/><feOffset dx="4.0" dy="4.0" in="blurOut2" result="blurOut3"/><feBlend in="SourceGraphic" in2="blurOut3" mode="normal"/></filter></defs><g><text fill="#000000" font-family="sans-serif" font-size="18" lengthAdjust="spacing" textLength="488" x="206.75" y="18.6855">Homebanking Banca Internet Banco Andino — Casos de Uso</text><!--MD5=[1ac9a199d3241872ef08cc43e9e8e9bd]
+cluster Homebanking — Portal del Cliente--><rect fill="#FFFFFF" filter="url(#fy9d62rzg0ig7)" height="1019" style="stroke:#000000;stroke-width:1.5;" width="794" x="108.5" y="29.6406"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing" textLength="239.4375" x="385.7813" y="46.1738">Homebanking — Portal del Cliente</text><!--MD5=[9a6f1993f7b421127d2848680c391d6e]
+cluster Consultas--><rect fill="#FFFFFF" filter="url(#fy9d62rzg0ig7)" height="403" style="stroke:#000000;stroke-width:1.5;" width="260" x="138" y="113.6406"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing" textLength="70" x="233" y="130.1738">Consultas</text><!--MD5=[ff19a356c5f93be5f7f08698b578e928]
+cluster Operaciones--><rect fill="#FFFFFF" filter="url(#fy9d62rzg0ig7)" height="360" style="stroke:#000000;stroke-width:1.5;" width="271" x="132.5" y="540.6406"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing" textLength="90" x="223" y="557.1738">Operaciones</text><!--MD5=[b0ef63fcc7cdb871b2a32d296d152bde]
+cluster Crédito--><rect fill="#FFFFFF" filter="url(#fy9d62rzg0ig7)" height="100" style="stroke:#000000;stroke-width:1.5;" width="242" x="147" y="924.6406"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing" textLength="52" x="242" y="941.1738">Crédito</text><ellipse cx="268.0887" cy="81.6584" fill="#FEFECE" filter="url(#fy9d62rzg0ig7)" rx="68.0887" ry="16.0177" style="stroke:#A80036;stroke-width:1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="82" x="224.0887" y="86.175">Iniciar sesión</text><ellipse cx="776.6395" cy="580.7685" fill="#FEFECE" filter="url(#fy9d62rzg0ig7)" rx="103.6395" ry="23.1279" style="stroke:#A80036;stroke-width:1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="169" x="692.1395" y="584.497">Validar token (tipo=cliente)</text><ellipse cx="776.4382" cy="752.7283" fill="#FEFECE" filter="url(#fy9d62rzg0ig7)" rx="93.4382" ry="21.0876" style="stroke:#A80036;stroke-width:1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="146" x="703.4382" y="756.4568">Validar saldo suficiente</text><ellipse cx="776.4781" cy="433.5362" fill="#FEFECE" filter="url(#fy9d62rzg0ig7)" rx="109.9781" ry="24.3956" style="stroke:#A80036;stroke-width:1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="183" x="684.9781" y="437.2648">Validar pertenencia al cliente</text><ellipse cx="268.1965" cy="170.8799" fill="#FEFECE" filter="url(#fy9d62rzg0ig7)" rx="91.6965" ry="20.7393" style="stroke:#A80036;stroke-width:1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="142" x="197.1965" y="174.6084">Ver cuentas de ahorro</text><ellipse cx="267.7508" cy="254.6439" fill="#FEFECE" filter="url(#fy9d62rzg0ig7)" rx="113.7508" ry="28.0032" style="stroke:#A80036;stroke-width:1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="144" x="192.7508" y="250.3558">Ver detalle PF/CTS/AP</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="120" x="204.7508" y="267.9652">(+ cronograma AP)</text><ellipse cx="267.9763" cy="335.7359" fill="#FEFECE" filter="url(#fy9d62rzg0ig7)" rx="75.9763" ry="17.5953" style="stroke:#A80036;stroke-width:1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="104" x="213.0467" y="340.2364">Ver movimientos</text><ellipse cx="268.08" cy="403.7633" fill="#FEFECE" filter="url(#fy9d62rzg0ig7)" rx="66.08" ry="15.6227" style="stroke:#A80036;stroke-width:1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="76" x="227.08" y="408.2799">Ver créditos</text><ellipse cx="268.1901" cy="477.6787" fill="#FEFECE" filter="url(#fy9d62rzg0ig7)" rx="103.1901" ry="23.038" style="stroke:#A80036;stroke-width:1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="168" x="184.1901" y="481.4072">Ver cronograma de cuotas</text><ellipse cx="268.1279" cy="603.4662" fill="#FEFECE" filter="url(#fy9d62rzg0ig7)" rx="119.6279" ry="26.3256" style="stroke:#A80036;stroke-width:1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="204" x="166.1279" y="607.1947">Transferir entre cuentas propias</text><ellipse cx="267.8935" cy="688.7193" fill="#FEFECE" filter="url(#fy9d62rzg0ig7)" rx="105.8935" ry="23.5787" style="stroke:#A80036;stroke-width:1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="174" x="180.8935" y="692.4478">Pagar crédito desde ahorro</text><ellipse cx="267.8554" cy="773.4117" fill="#FEFECE" filter="url(#fy9d62rzg0ig7)" rx="116.8554" ry="25.7711" style="stroke:#A80036;stroke-width:1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="198" x="168.8554" y="777.1402">Consultar catálogo de servicios</text><ellipse cx="267.847" cy="859.81" fill="#FEFECE" filter="url(#fy9d62rzg0ig7)" rx="111.347" ry="24.6694" style="stroke:#A80036;stroke-width:1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="186" x="174.847" y="863.5385">Pagar servicios desde ahorro</text><ellipse cx="267.9905" cy="984.5387" fill="#FEFECE" filter="url(#fy9d62rzg0ig7)" rx="104.9905" ry="23.3981" style="stroke:#A80036;stroke-width:1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="172" x="181.9905" y="988.2672">Solicitar préstamo (ME/CO)</text><!--MD5=[17b342a17091e2dc73df905bcbb9a63c]
+entity Cli--><ellipse cx="33" cy="454.6406" fill="#FEFECE" filter="url(#fy9d62rzg0ig7)" rx="16" ry="16" style="stroke:#A80036;stroke-width:1.5;"/><path d="M33,474.6406 C37,474.6406 40,474.6406 44,470.6406 C52,470.6406 60,478.6406 60,486.6406 L60,490.6406 C60,494.6406 56,498.6406 52,498.6406 L14,498.6406 C10,498.6406 6,494.6406 6,490.6406 L6,486.6406 C6,478.6406 14,470.6406 22,470.6406 C26,474.6406 29,474.6406 33,474.6406 " fill="#FEFECE" filter="url(#fy9d62rzg0ig7)" style="stroke:#A80036;stroke-width:1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="44" x="11" y="514.6738">Cliente</text><!--MD5=[82f4cbc36554b3e8e13bf55fbb33759a]
+entity Core--><ellipse cx="776.5" cy="1104.1406" fill="#FEFECE" filter="url(#fy9d62rzg0ig7)" rx="16" ry="16" style="stroke:#A80036;stroke-width:1.5;"/><path d="M776.5,1124.1406 C780.5,1124.1406 783.5,1124.1406 787.5,1120.1406 C795.5,1120.1406 803.5,1128.1406 803.5,1136.1406 L803.5,1140.1406 C803.5,1144.1406 799.5,1148.1406 795.5,1148.1406 L757.5,1148.1406 C753.5,1148.1406 749.5,1144.1406 749.5,1140.1406 L749.5,1136.1406 C749.5,1128.1406 757.5,1120.1406 765.5,1120.1406 C769.5,1124.1406 772.5,1124.1406 776.5,1124.1406 " fill="#FEFECE" filter="url(#fy9d62rzg0ig7)" style="stroke:#A80036;stroke-width:1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="102" x="710.5" y="1164.1738">Core Financiero</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="132" x="710.5" y="1181.7832">(bd_core_financiero)</text><!--MD5=[18607bdb1fd76b69f284b330617d6813]
+link Cli to UC01--><path d="M36.7,437.1306 C42.89,356.1206 60.77,178.0806 100.5,133.6406 C124.93,106.3106 163.49,93.2006 197.34,86.9806 " fill="none" id="Cli-to-UC01" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="202.3,86.1106,192.7398,83.7435,197.3768,86.9836,194.1367,91.6206,202.3,86.1106" style="stroke:#A80036;stroke-width:1.0;"/><!--MD5=[d1fdebe74697749b2f1e80b8d6b4d4d9]
+link Cli to UC03--><path d="M38.82,436.9606 C47.61,369.8606 68.32,240.2406 100.5,208.6406 C119.54,189.9406 145.77,179.7006 171.78,174.2706 " fill="none" id="Cli-to-UC03" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="176.98,173.2506,167.3752,171.0719,172.0749,174.2202,168.9265,178.92,176.98,173.2506" style="stroke:#A80036;stroke-width:1.0;"/><!--MD5=[18fe29567d77f4600b1a9a73350436d5]
+link Cli to UC04--><path d="M38.62,436.9606 C45.35,396.7306 61.61,336.1906 100.5,300.6406 C117.17,285.4106 138.44,275.1506 160.16,268.2706 " fill="none" id="Cli-to-UC04" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="165.09,266.7706,155.3151,265.5655,160.3068,268.227,157.6453,273.2187,165.09,266.7706" style="stroke:#A80036;stroke-width:1.0;"/><!--MD5=[077f4770ec686887263404efeb1720f6]
+link Cli to UC05--><path d="M49.67,436.9806 C60.55,414.0806 77.3,386.8906 100.5,370.6406 C125.77,352.9406 158.14,343.8606 187.61,339.3106 " fill="none" id="Cli-to-UC05" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="192.69,338.5606,183.2029,335.9158,187.7434,339.2897,184.3695,343.8303,192.69,338.5606" style="stroke:#A80036;stroke-width:1.0;"/><!--MD5=[927ee226b357e1a0b3e40c120b8b06ea]
+link Cli to UC06--><path d="M61.63,457.5306 C73.16,449.9806 86.99,441.9406 100.5,436.6406 C133.05,423.8706 171.19,415.8406 202.75,410.9106 " fill="none" id="Cli-to-UC06" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="207.76,410.1506,198.2581,407.5595,202.8176,410.9077,199.4694,415.4672,207.76,410.1506" style="stroke:#A80036;stroke-width:1.0;"/><!--MD5=[61b2fd9d4afe21686674890199d902ad]
+link Cli to UC07--><path d="M61.64,477.6406 C86.12,477.6406 123.47,477.6406 159.64,477.6406 " fill="none" id="Cli-to-UC07" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="164.96,477.6406,155.96,473.6406,159.96,477.6406,155.96,481.6406,164.96,477.6406" style="stroke:#A80036;stroke-width:1.0;"/><!--MD5=[9f43c501279670a7454161fa877e6278]
+link Cli to UC08--><path d="M61.65,494.2706 C73.53,501.3006 87.62,509.5106 100.5,516.6406 C138.16,537.5106 181.25,559.9906 214.16,576.8706 " fill="none" id="Cli-to-UC08" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="218.94,579.3206,212.7569,571.6545,214.4909,577.039,209.1064,578.773,218.94,579.3206" style="stroke:#A80036;stroke-width:1.0;"/><!--MD5=[d263519cc5d357326dbe1cbeb0da1751]
+link Cli to UC09--><path d="M39.15,518.4306 C46.23,557.2506 62.73,614.5306 100.5,647.6406 C118.16,663.1206 140.75,672.9506 163.55,679.1506 " fill="none" id="Cli-to-UC09" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="168.42,680.4206,160.7138,674.2876,163.5804,679.1643,158.7037,682.031,168.42,680.4206" style="stroke:#A80036;stroke-width:1.0;"/><!--MD5=[da4887db23cb1fd68448722eae052255]
+link Cli to UC10--><path d="M39.68,518.2106 C49.36,581.6206 70.91,700.0406 100.5,729.6406 C115.57,744.7206 135.15,754.8106 155.58,761.5206 " fill="none" id="Cli-to-UC10" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="160.5,763.0706,153.1139,756.5556,155.7301,761.5711,150.7147,764.1874,160.5,763.0706" style="stroke:#A80036;stroke-width:1.0;"/><!--MD5=[97f00780a2d9b0afbf5f857d7cbc1676]
+link Cli to UC11--><path d="M36.65,518.3506 C42.71,598.7806 60.29,773.9806 100.5,816.6406 C115.83,832.9006 136.42,843.3306 157.89,849.9406 " fill="none" id="Cli-to-UC11" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="162.78,851.3806,155.2775,845,157.9839,849.9675,153.0164,852.6739,162.78,851.3806" style="stroke:#A80036;stroke-width:1.0;"/><!--MD5=[5e89c675ec8a0ad234230751e12b7521]
+link Cli to UC12--><path d="M35.74,518.4106 C40.48,612.2406 56.34,840.0406 100.5,900.6406 C123.13,931.6906 160.55,952.0006 194.19,964.8606 " fill="none" id="Cli-to-UC12" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="199.13,966.7106,192.1075,959.8052,194.4484,964.955,189.2985,967.2958,199.13,966.7106" style="stroke:#A80036;stroke-width:1.0;"/><!--MD5=[93db8c06c8e87592e267c63e36597258]
+link UC03 to UC02--><path d="M335.11,156.6706 C417.82,143.4606 558.08,135.8506 636.5,214.6406 C677.68,256.0206 640.62,423.3106 666.5,475.6406 C682.74,508.4806 713.63,536.7006 738.38,555.5806 " fill="none" id="UC03-to-UC02" style="stroke:#A80036;stroke-width:1.0;stroke-dasharray:7.0,7.0;"/><polygon fill="#A80036" points="742.62,558.7706,737.82,550.1706,738.62,555.7706,733.02,556.5706,742.62,558.7706" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="55" x="500.5" y="145.1357">«include»</text><!--MD5=[b3c5077d50ce29595bd1a6d5e23de024]
+link UC06 to UC02--><path d="M326.77,396.4906 C417.3,386.5006 587.32,373.0206 636.5,405.6406 C664.71,424.3506 647.26,447.7906 666.5,475.6406 C687.68,506.3006 718.83,535.2106 742.42,554.9006 " fill="none" id="UC06-to-UC02" style="stroke:#A80036;stroke-width:1.0;stroke-dasharray:7.0,7.0;"/><polygon fill="#A80036" points="746.43,558.2206,742.0541,549.3973,742.5807,555.0296,736.9484,555.5562,746.43,558.2206" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="55" x="500.5" y="382.1357">«include»</text><!--MD5=[6155e33c4e63138bd3ce6e25b901c3c0]
+link UC08 to UC02--><path d="M331.46,581.0606 C358.19,572.5306 389.99,563.8706 419.5,559.6406 C510.92,546.5506 616.68,555.8506 689.02,565.8806 " fill="none" id="UC08-to-UC02" style="stroke:#A80036;stroke-width:1.0;stroke-dasharray:7.0,7.0;"/><polygon fill="#A80036" points="694.17,566.6106,685.8177,561.3915,689.2191,565.9115,684.6991,569.3129,694.17,566.6106" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="55" x="500.5" y="550.1357">«include»</text><!--MD5=[df55873f73e6c90dc620152b06092e03]
+link UC09 to UC02--><path d="M341.62,705.6606 C417.63,720.0206 539.22,733.1306 636.5,697.6406 C685.36,679.8206 728.95,636.4106 753.78,607.7806 " fill="none" id="UC09-to-UC02" style="stroke:#A80036;stroke-width:1.0;stroke-dasharray:7.0,7.0;"/><polygon fill="#A80036" points="757.31,603.6706,748.4159,607.9008,754.056,607.4669,754.4899,613.1071,757.31,603.6706" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="55" x="500.5" y="694.1357">«include»</text><!--MD5=[51916df11b3fec79a56982a91fdf3220]
+link UC11 to UC02--><path d="M354.78,875.0406 C449.84,889.9806 595.2,905.8406 636.5,871.6406 C691.55,826.0606 636.24,778.4006 666.5,713.6406 C686.13,671.6206 722.08,631.6206 747.31,606.6606 " fill="none" id="UC11-to-UC02" style="stroke:#A80036;stroke-width:1.0;stroke-dasharray:7.0,7.0;"/><polygon fill="#A80036" points="750.95,603.0906,741.7224,606.5331,747.3789,606.5903,747.3218,612.2468,750.95,603.0906" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="55" x="500.5" y="868.1357">«include»</text><!--MD5=[3ffbce4ddb520cb1b014a026c5b81480]
+link UC12 to UC02--><path d="M360.55,995.7806 C456.18,1005.1906 597.6,1012.1206 636.5,976.6406 C679.96,937.0006 643.59,767.8206 666.5,713.6406 C684.45,671.1906 720.4,631.5606 746.11,606.8006 " fill="none" id="UC12-to-UC02" style="stroke:#A80036;stroke-width:1.0;stroke-dasharray:7.0,7.0;"/><polygon fill="#A80036" points="749.82,603.2506,740.5445,606.5619,746.1997,606.6993,746.0623,612.3544,749.82,603.2506" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="55" x="500.5" y="973.1357">«include»</text><!--MD5=[ab5b17f85e95eef0c5f5d77521499102]
+link UC08 to UCV--><path d="M385.93,599.1106 C476.24,597.2606 592.92,598.9906 636.5,617.6406 C690.66,640.8306 735.77,695.4706 758.87,727.6806 " fill="none" id="UC08-to-UCV" style="stroke:#A80036;stroke-width:1.0;stroke-dasharray:7.0,7.0;"/><polygon fill="#A80036" points="761.84,731.8806,759.9151,722.2217,758.9555,727.7966,753.3806,726.837,761.84,731.8806" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="55" x="500.5" y="595.1357">«include»</text><!--MD5=[48923e9723e4d834d0236cf6a010e0be]
+link UC09 to UCV--><path d="M360.2,700.5006 C379.07,706.6306 397.45,715.8406 411.5,729.6406 C420.13,738.1106 409.77,748.4606 419.5,755.6406 C461.1,786.3606 600.42,775.6406 691.94,764.5306 " fill="none" id="UC09-to-UCV" style="stroke:#A80036;stroke-width:1.0;stroke-dasharray:7.0,7.0;"/><polygon fill="#A80036" points="697.08,763.9006,687.6564,761.0378,692.118,764.5155,688.6402,768.9771,697.08,763.9006" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="55" x="500.5" y="752.1357">«include»</text><!--MD5=[4804a5b394c071a14eb12825a45831f4]
+link UC11 to UCV--><path d="M308.66,882.5506 C378.4,919.5806 526.1,983.3206 636.5,929.6406 C701.67,897.9606 745.37,819.2806 764.5,778.3306 " fill="none" id="UC11-to-UCV" style="stroke:#A80036;stroke-width:1.0;stroke-dasharray:7.0,7.0;"/><polygon fill="#A80036" points="766.71,773.5306,759.3028,780.0216,764.612,778.0692,766.5644,783.3784,766.71,773.5306" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="55" x="500.5" y="926.1357">«include»</text><!--MD5=[1e8a4d6e7c656819b3c709f0bb70c58a]
+link UC04 to UCP--><path d="M370.1,242.1706 C446.99,237.2006 553.36,240.2806 636.5,280.6406 C692.65,307.9006 736.67,368.7506 759.12,404.9606 " fill="none" id="UC04-to-UCP" style="stroke:#A80036;stroke-width:1.0;stroke-dasharray:7.0,7.0;"/><polygon fill="#A80036" points="761.75,409.2406,760.4489,399.4781,759.1335,404.9799,753.6317,403.6645,761.75,409.2406" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="55" x="500.5" y="237.1357">«include»</text><!--MD5=[b889b4f2392259ebe29682e0738b4a59]
+link UC05 to UCP--><path d="M322.44,323.3806 C395.53,309.0606 529.79,291.6006 636.5,327.6406 C681.99,343.0106 724.35,379.8706 750.06,405.7906 " fill="none" id="UC05-to-UCP" style="stroke:#A80036;stroke-width:1.0;stroke-dasharray:7.0,7.0;"/><polygon fill="#A80036" points="753.74,409.5306,750.2602,400.317,750.226,405.9737,744.5692,405.9394,753.74,409.5306" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="55" x="500.5" y="303.1357">«include»</text><!--MD5=[d567683fb1d03517d6e71197326fd972]
+link UC07 to UCP--><path d="M334.44,459.9506 C360.68,453.6206 391.33,447.1906 419.5,443.6406 C500.08,433.5106 591.69,431.1406 661.79,431.2406 " fill="none" id="UC07-to-UCP" style="stroke:#A80036;stroke-width:1.0;stroke-dasharray:7.0,7.0;"/><polygon fill="#A80036" points="666.8,431.2506,657.8115,427.2249,661.8,431.2363,657.7886,435.2249,666.8,431.2506" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="55" x="500.5" y="428.1357">«include»</text><!--MD5=[4b2ffdf90912a91bd63c7761c66bab50]
+link UC08 to UCP--><path d="M312.02,578.8706 C341.54,562.6406 382.01,541.8806 419.5,527.6406 C426.17,525.1106 596.59,480.4106 699.18,453.5806 " fill="none" id="UC08-to-UCP" style="stroke:#A80036;stroke-width:1.0;stroke-dasharray:7.0,7.0;"/><polygon fill="#A80036" points="704.32,452.2406,694.5993,450.6571,699.4839,453.5103,696.6307,458.3949,704.32,452.2406" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="55" x="500.5" y="468.1357">«include»</text><!--MD5=[5e48442bb346e8026136cda06ef37067]
+link UC09 to UCP--><path d="M365.78,679.4506 C471.17,669.0406 626.23,652.4006 636.5,643.6406 C673.11,612.4306 641.76,580.9006 666.5,539.6406 C685.3,508.2906 715.66,479.8406 739.57,460.3206 " fill="none" id="UC09-to-UCP" style="stroke:#A80036;stroke-width:1.0;stroke-dasharray:7.0,7.0;"/><polygon fill="#A80036" points="743.65,457.0306,734.1369,459.5804,739.7624,460.175,739.1679,465.8005,743.65,457.0306" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="55" x="500.5" y="640.1357">«include»</text><!--MD5=[da1eaebe2379e230f6f56c12956a3390]
+link UC11 to UCP--><path d="M371.11,850.1506 C473.38,839.6506 618.22,821.6806 636.5,802.6406 C677.25,760.2206 640.57,592.4406 666.5,539.6406 C682.39,507.2806 712.36,479.2706 736.86,460.1906 " fill="none" id="UC11-to-UCP" style="stroke:#A80036;stroke-width:1.0;stroke-dasharray:7.0,7.0;"/><polygon fill="#A80036" points="741.05,456.9706,731.4731,459.2692,737.081,460.0116,736.3387,465.6195,741.05,456.9706" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="55" x="500.5" y="799.1357">«include»</text><!--MD5=[fb77cd93278d1840643f74bcdac33830]
+link UC12 to Core--><path d="M275.72,1008.2706 C291.34,1058.2006 335.34,1173.6006 419.5,1219.6406 C504.11,1265.9306 543.6,1245.5306 636.5,1219.6406 C660.72,1212.8906 684.92,1200.6606 706.19,1187.5706 " fill="none" id="UC12-to-Core" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="710.69,1184.7706,700.9359,1186.1338,706.446,1187.4142,705.1657,1192.9243,710.69,1184.7706" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="215" x="420.5" y="1216.1357">solicitud (dsolicitud, "En Evaluación")</text><!--MD5=[1c40f50fb53b27f145368cfc15430042]
+link UC08 to Core--><path d="M370.26,617.5206 C386.33,624.1706 401.06,633.7906 411.5,647.6406 C424.97,665.5306 404.66,1033.8706 419.5,1050.6406 C451.78,1087.1206 589.38,1069.3006 636.5,1081.6406 C659.43,1087.6506 683.75,1096.2706 705.52,1104.8606 " fill="none" id="UC08-to-Core" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="710.41,1106.8106,703.5206,1099.7725,705.7627,1104.966,700.5692,1107.2081,710.41,1106.8106" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="123" x="466.5" y="1047.1357">foperaciones / saldos</text><!--MD5=[ce798759137755df46ac09944fdfbdf6]
+link UC09 to Core--><path d="M364.68,698.3306 C382.84,704.6206 399.8,714.4406 411.5,729.6406 C424.18,746.1106 405.31,1088.4506 419.5,1103.6406 C438.56,1124.0506 606.87,1131.5806 705.09,1134.2506 " fill="none" id="UC09-to-Core" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="710.29,1134.3906,701.3958,1130.1606,705.2917,1134.2621,701.1902,1138.158,710.29,1134.3906" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="165" x="445.5" y="1100.1357">foperaciones / fplanpagomes</text><!--MD5=[902938e5c223f8009f5fb5e8fb93be6e]
+link UC11 to Core--><path d="M330.16,880.1106 C360.11,893.5206 393.51,914.2806 411.5,944.6406 C423.8,965.4006 402.13,1144.9006 419.5,1161.6406 C458.86,1199.5806 613.03,1172.8806 705.09,1152.6206 " fill="none" id="UC11-to-Core" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="710.24,1151.4706,700.5854,1149.5242,705.3597,1152.5583,702.3257,1157.3327,710.24,1151.4706" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="123" x="466.5" y="1158.1357">foperaciones / saldos</text><!--MD5=[9721afed9b09d9e12d54a4921b63f903]
+@startuml casos_de_uso
+' Diagrama de Casos de Uso - Homebanking Banca Internet Banco Andino
+left to right direction
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+title Homebanking Banca Internet Banco Andino — Casos de Uso
+
+actor "Cliente" as Cli
+actor "Core Financiero\n(bd_core_financiero)" as Core
+
+rectangle "Homebanking — Portal del Cliente" {
+
+  usecase "Iniciar sesión" as UC01
+  usecase "Validar token (tipo=cliente)" as UC02
+
+  package "Consultas" {
+    usecase "Ver cuentas de ahorro" as UC03
+    usecase "Ver detalle PF/CTS/AP\n(+ cronograma AP)" as UC04
+    usecase "Ver movimientos" as UC05
+    usecase "Ver créditos" as UC06
+    usecase "Ver cronograma de cuotas" as UC07
+  }
+
+  package "Operaciones" {
+    usecase "Transferir entre cuentas propias" as UC08
+    usecase "Pagar crédito desde ahorro" as UC09
+    usecase "Consultar catálogo de servicios" as UC10
+    usecase "Pagar servicios desde ahorro" as UC11
+  }
+
+  package "Crédito" {
+    usecase "Solicitar préstamo (ME/CO)" as UC12
+  }
+
+  usecase "Validar saldo suficiente" as UCV
+  usecase "Validar pertenencia al cliente" as UCP
+}
+
+Cli - -> UC01
+Cli - -> UC03
+Cli - -> UC04
+Cli - -> UC05
+Cli - -> UC06
+Cli - -> UC07
+Cli - -> UC08
+Cli - -> UC09
+Cli - -> UC10
+Cli - -> UC11
+Cli - -> UC12
+
+' Todas las consultas y operaciones requieren sesión válida
+UC03 ..> UC02 : <<include>>
+UC06 ..> UC02 : <<include>>
+UC08 ..> UC02 : <<include>>
+UC09 ..> UC02 : <<include>>
+UC11 ..> UC02 : <<include>>
+UC12 ..> UC02 : <<include>>
+
+' Reglas reutilizadas
+UC08 ..> UCV : <<include>>
+UC09 ..> UCV : <<include>>
+UC11 ..> UCV : <<include>>
+UC04 ..> UCP : <<include>>
+UC05 ..> UCP : <<include>>
+UC07 ..> UCP : <<include>>
+UC08 ..> UCP : <<include>>
+UC09 ..> UCP : <<include>>
+UC11 ..> UCP : <<include>>
+
+' El core recibe la solicitud y refleja las operaciones
+UC12 - -> Core : solicitud (dsolicitud, "En Evaluación")
+UC08 - -> Core : foperaciones / saldos
+UC09 - -> Core : foperaciones / fplanpagomes
+UC11 - -> Core : foperaciones / saldos
+
+@enduml
+
+@startuml casos_de_uso
+left to right direction
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+title Homebanking Banca Internet Banco Andino — Casos de Uso
+
+actor "Cliente" as Cli
+actor "Core Financiero\n(bd_core_financiero)" as Core
+
+rectangle "Homebanking — Portal del Cliente" {
+
+  usecase "Iniciar sesión" as UC01
+  usecase "Validar token (tipo=cliente)" as UC02
+
+  package "Consultas" {
+    usecase "Ver cuentas de ahorro" as UC03
+    usecase "Ver detalle PF/CTS/AP\n(+ cronograma AP)" as UC04
+    usecase "Ver movimientos" as UC05
+    usecase "Ver créditos" as UC06
+    usecase "Ver cronograma de cuotas" as UC07
+  }
+
+  package "Operaciones" {
+    usecase "Transferir entre cuentas propias" as UC08
+    usecase "Pagar crédito desde ahorro" as UC09
+    usecase "Consultar catálogo de servicios" as UC10
+    usecase "Pagar servicios desde ahorro" as UC11
+  }
+
+  package "Crédito" {
+    usecase "Solicitar préstamo (ME/CO)" as UC12
+  }
+
+  usecase "Validar saldo suficiente" as UCV
+  usecase "Validar pertenencia al cliente" as UCP
+}
+
+Cli - -> UC01
+Cli - -> UC03
+Cli - -> UC04
+Cli - -> UC05
+Cli - -> UC06
+Cli - -> UC07
+Cli - -> UC08
+Cli - -> UC09
+Cli - -> UC10
+Cli - -> UC11
+Cli - -> UC12
+
+UC03 ..> UC02 : <<include>>
+UC06 ..> UC02 : <<include>>
+UC08 ..> UC02 : <<include>>
+UC09 ..> UC02 : <<include>>
+UC11 ..> UC02 : <<include>>
+UC12 ..> UC02 : <<include>>
+
+UC08 ..> UCV : <<include>>
+UC09 ..> UCV : <<include>>
+UC11 ..> UCV : <<include>>
+UC04 ..> UCP : <<include>>
+UC05 ..> UCP : <<include>>
+UC07 ..> UCP : <<include>>
+UC08 ..> UCP : <<include>>
+UC09 ..> UCP : <<include>>
+UC11 ..> UCP : <<include>>
+
+UC12 - -> Core : solicitud (dsolicitud, "En Evaluación")
+UC08 - -> Core : foperaciones / saldos
+UC09 - -> Core : foperaciones / fplanpagomes
+UC11 - -> Core : foperaciones / saldos
+
+@enduml
+
+PlantUML version 1.2021.00(Sun Jan 10 05:25:05 GMT-05:00 2021)
+(MIT source distribution)
+Java Runtime: Java(TM) SE Runtime Environment
+JVM: Java HotSpot(TM) 64-Bit Server VM
+Default Encoding: UTF-8
+Language: es
+Country: PE
+--></g></svg>

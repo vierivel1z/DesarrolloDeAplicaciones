@@ -36,6 +36,16 @@ export async function adminDesembolsarSolicitud(id) {
   return data
 }
 
+export async function adminBuscarClientes(q) {
+  const { data } = await hbApi.get('/admin/clientes/buscar', { params: { q } })
+  return data
+}
+
+export async function adminCrearCliente(payload) {
+  const { data } = await hbApi.post('/admin/clientes/crear', payload)
+  return data
+}
+
 // ── Power BI flat exports ────────────────────────────────────────────────────
 
 export async function getPbClientes() {

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { FilePlus2, ArrowLeft, RefreshCw, CheckCircle, Play, FileText, CalendarDays } from 'lucide-react'
-import { getAdminSolicitudes, adminSolicitarCredito, adminEvaluarSolicitud, adminDesembolsarSolicitud } from '../services/adminService.js'
+import { getAdminSolicitudes, adminSolicitarCredito, adminEvaluarSolicitud, adminDesembolsarSolicitud, adminBuscarClientes, adminCrearCliente } from '../services/adminService.js'
 import { toNumber, formatDate } from '../utils/format.js'
 import PageLayout from '../components/layout/PageLayout.jsx'
 import Card from '../components/ui/Card.jsx'
@@ -37,13 +37,37 @@ export default function AdminCreditosPage() {
 function AdminSolicitarCreditoForm() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const pkcliente = searchParams.get('pkcliente')
-  const nombreCliente = searchParams.get('nombre')
+  const pkclienteParam = searchParams.get('pkcliente')
+  const nombreClienteParam = searchParams.get('nombre')
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [validacion, setValidacion] = useState(null)
   const [result, setResult] = useState(null)
+
+  // Mode: 'existente' or 'nuevo'. Defaults to 'existente'
+  const [clientMode, setClientMode] = useState('existente')
+  
+  // Selected client details
+  const [selectedClient, setSelectedClient] = useState(
+    pkclienteParam ? { pkcliente: parseInt(pkclienteParam, 10), nombre: nombreClienteParam } : null
+  )
+
+  // Client search states
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState([])
+  const [searching, setSearching] = useState(false)
+
+  // New client form state
+  const [clientForm, setClientForm] = useState({
+    nomcliente: '',
+    numerodocumentoidentidad: '',
+    email: '',
+    numerotelefonopersonal: '',
+    montoingresoneto: '',
+    codactividadeconomica: '4711',
+    codubigeo: '120101',
+  })
 
   const [form, setForm] = useState({
     montosolicitud: '',
@@ -57,12 +81,29 @@ function AdminSolicitarCreditoForm() {
   })
 
   const setF = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }))
+  const setCF = (k) => (e) => setClientForm((cf) => ({ ...cf, [k]: e.target.value }))
+
+  const handleSearch = async (e) => {
+    e.preventDefault()
+    if (!searchQuery.trim()) return
+    try {
+      setSearching(true)
+      setError(null)
+      const data = await adminBuscarClientes(searchQuery.trim())
+      setSearchResults(data)
+    } catch (err) {
+      setError(err?.response?.data?.detail || 'Error al buscar clientes')
+    } finally {
+      setSearching(false)
+    }
+  }
 
   const onSubmit = async (e) => {
     e.preventDefault()
     setValidacion(null)
     setError(null)
 
+    // Validate credit request inputs
     const monto = toNumber(form.montosolicitud)
     const plazo = parseInt(form.plazo, 10)
     const ingreso = toNumber(form.montoingresoneto)
@@ -74,10 +115,47 @@ function AdminSolicitarCreditoForm() {
     if (!form.codactividadeconomica) { setValidacion('Seleccione una actividad económica.'); return }
     if (!dia_pago || dia_pago < 1 || dia_pago > 31) { setValidacion('Día de pago inválido (1-31).'); return }
 
+    // If existing client mode, check that a client was selected
+    if (clientMode === 'existente' && !selectedClient) {
+      setValidacion('Debe buscar y seleccionar un cliente existente.');
+      return
+    }
+
+    // If new client mode, validate client details
+    if (clientMode === 'nuevo') {
+      if (!clientForm.nomcliente.trim()) { setValidacion('Ingrese el nombre completo del nuevo cliente.'); return }
+      if (!clientForm.numerodocumentoidentidad.trim() || clientForm.numerodocumentoidentidad.length < 8 || clientForm.numerodocumentoidentidad.length > 12) {
+        setValidacion('Ingrese un documento de identidad válido (8-12 caracteres).'); return
+      }
+      if (!clientForm.email.trim()) { setValidacion('Ingrese el email del nuevo cliente.'); return }
+      if (!clientForm.numerotelefonopersonal.trim()) { setValidacion('Ingrese el teléfono del nuevo cliente.'); return }
+      const clientIngreso = toNumber(clientForm.montoingresoneto)
+      if (clientIngreso <= 0) { setValidacion('Ingrese un ingreso mensual válido para el cliente.'); return }
+    }
+
     try {
       setLoading(true)
+      let targetPkCliente = null
+
+      if (clientMode === 'nuevo') {
+        // Create the new client first
+        const newClientData = await adminCrearCliente({
+          nomcliente: clientForm.nomcliente,
+          numerodocumentoidentidad: clientForm.numerodocumentoidentidad,
+          email: clientForm.email,
+          numerotelefonopersonal: clientForm.numerotelefonopersonal,
+          montoingresoneto: toNumber(clientForm.montoingresoneto),
+          codactividadeconomica: clientForm.codactividadeconomica,
+          codubigeo: clientForm.codubigeo,
+        })
+        targetPkCliente = newClientData.pkcliente
+      } else {
+        targetPkCliente = selectedClient.pkcliente
+      }
+
+      // Now create the credit application
       const data = await adminSolicitarCredito({
-        pkcliente: parseInt(pkcliente, 10),
+        pkcliente: targetPkCliente,
         montosolicitud: monto,
         plazo,
         codtipocredito: form.codtipocredito,
@@ -89,7 +167,7 @@ function AdminSolicitarCreditoForm() {
       })
       setResult(data)
     } catch (err) {
-      setError(err?.response?.data?.detail || 'Error al solicitar el crédito')
+      setError(err?.response?.data?.detail || 'Error al procesar la solicitud')
     } finally {
       setLoading(false)
     }
@@ -97,11 +175,13 @@ function AdminSolicitarCreditoForm() {
 
   return (
     <PageLayout>
-      <button className="hb-back" onClick={() => navigate('/admin/clientes')}>
-        <ArrowLeft size={16} /> Volver a Clientes
+      <button className="hb-back" onClick={() => navigate(pkclienteParam ? '/admin/clientes' : '/admin/creditos')}>
+        <ArrowLeft size={16} /> Volver a {pkclienteParam ? 'Clientes' : 'Solicitudes'}
       </button>
       <h1 className="bbva-page-title">Registrar Crédito (Admin)</h1>
-      <p className="bbva-page-sub">Cliente: {nombreCliente}</p>
+      <p className="bbva-page-sub">
+        {selectedClient ? `Cliente: ${selectedClient.nombre}` : 'Crear solicitud para un cliente nuevo o existente'}
+      </p>
 
       {result ? (
         <Card>
@@ -109,76 +189,238 @@ function AdminSolicitarCreditoForm() {
             <h3>Solicitud registrada</h3>
             <p>Se ha registrado la solicitud {result.codsolicitud}</p>
           </div>
-          <div className="bbva-form-actions">
+          <div className="bbva-form-actions" style={{ marginTop: 20 }}>
             <button className="bbva-btn" onClick={() => navigate('/admin/creditos')}>Ir a Solicitudes</button>
           </div>
         </Card>
       ) : (
-        <Card title="Datos de la Solicitud" icon={<FilePlus2 size={18} />}>
-          {error && <Alert tipo="error">{error}</Alert>}
-          {validacion && <Alert tipo="warn">{validacion}</Alert>}
-
-          <form onSubmit={onSubmit}>
-            <div className="hb-grid-2">
-              <div className="hb-field">
-                <label htmlFor="monto">Monto (S/)</label>
-                <input id="monto" className="hb-input" type="number" min="1" step="0.01" value={form.montosolicitud} onChange={setF('montosolicitud')} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          
+          {/* Card de selección/creación de cliente (solo si no viene pre-seleccionado en URL) */}
+          {!pkclienteParam && (
+            <Card title="Selección de Cliente" icon={<ArrowLeft style={{ transform: 'rotate(90deg)' }} size={18} />}>
+              <div className="admin-filter-btns" style={{ marginBottom: 20 }}>
+                <button
+                  type="button"
+                  className={`admin-filter-btn ${clientMode === 'existente' ? 'active' : ''}`}
+                  onClick={() => {
+                    setClientMode('existente')
+                    setSearchResults([])
+                    setSearchQuery('')
+                    setSelectedClient(null)
+                  }}
+                >
+                  Cliente Existente
+                </button>
+                <button
+                  type="button"
+                  className={`admin-filter-btn ${clientMode === 'nuevo' ? 'active' : ''}`}
+                  onClick={() => {
+                    setClientMode('nuevo')
+                    setSelectedClient(null)
+                  }}
+                >
+                  Nuevo Cliente
+                </button>
               </div>
-              <div className="hb-field">
-                <label htmlFor="plazo">Plazo (meses)</label>
-                <input id="plazo" className="hb-input" type="number" min="1" step="1" value={form.plazo} onChange={setF('plazo')} />
-              </div>
-            </div>
 
-            <div className="hb-grid-2">
+              {clientMode === 'existente' ? (
+                <div>
+                  {selectedClient ? (
+                    <div className="hb-alert hb-alert-success" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: 0 }}>
+                      <div>
+                        <strong>Cliente seleccionado:</strong> {selectedClient.nombre} (<code>{selectedClient.codcliente}</code>)
+                      </div>
+                      <button type="button" className="bbva-btn-ghost sm" onClick={() => setSelectedClient(null)}>
+                        Cambiar
+                      </button>
+                    </div>
+                  ) : (
+                    <div>
+                      <form onSubmit={handleSearch} style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
+                        <input
+                          type="text"
+                          className="hb-input"
+                          placeholder="Buscar por código, nombre o documento..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                        <button type="submit" className="bbva-btn" disabled={searching}>
+                          {searching ? 'Buscando...' : 'Buscar'}
+                        </button>
+                      </form>
+
+                      {searchResults.length > 0 && (
+                        <div style={{ maxHeight: 250, overflowY: 'auto', border: '1px solid var(--hb-border)', borderRadius: '9px' }}>
+                          <table className="hb-table" style={{ fontSize: '13.5px' }}>
+                            <thead>
+                              <tr>
+                                <th>Código</th>
+                                <th>Nombre</th>
+                                <th>Documento</th>
+                                <th style={{ textAlign: 'right' }}>Acción</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {searchResults.map((c) => (
+                                <tr key={c.pkcliente}>
+                                  <td><code>{c.codcliente}</code></td>
+                                  <td style={{ fontWeight: 600 }}>{c.nombre}</td>
+                                  <td>{c.nro_documento}</td>
+                                  <td style={{ textAlign: 'right' }}>
+                                    <button
+                                      type="button"
+                                      className="bbva-btn-ghost sm"
+                                      style={{ padding: '4px 8px', fontSize: '0.8rem' }}
+                                      onClick={() => {
+                                        setSelectedClient(c)
+                                        setForm((prev) => ({ ...prev, montoingresoneto: prev.montoingresoneto || c.montoingresoneto || '' }))
+                                      }}
+                                    >
+                                      Seleccionar
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                      {searchQuery && searchResults.length === 0 && !searching && (
+                        <p className="bbva-empty" style={{ margin: '10px 0' }}>No se encontraron resultados.</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <div className="hb-grid-2">
+                    <div className="hb-field">
+                      <label htmlFor="new_nom">Nombre completo (ej. Pérez, Juan) *</label>
+                      <input id="new_nom" className="hb-input" type="text" value={clientForm.nomcliente} onChange={setCF('nomcliente')} placeholder="Apellidos, Nombres" />
+                    </div>
+                    <div className="hb-field">
+                      <label htmlFor="new_doc">Documento Identidad (DNI/RUC) *</label>
+                      <input id="new_doc" className="hb-input" type="text" value={clientForm.numerodocumentoidentidad} onChange={setCF('numerodocumentoidentidad')} placeholder="8 a 12 dígitos" />
+                    </div>
+                  </div>
+
+                  <div className="hb-grid-2">
+                    <div className="hb-field">
+                      <label htmlFor="new_email">Email *</label>
+                      <input id="new_email" className="hb-input" type="email" value={clientForm.email} onChange={setCF('email')} placeholder="correo@ejemplo.com" />
+                    </div>
+                    <div className="hb-field">
+                      <label htmlFor="new_tel">Teléfono Celular *</label>
+                      <input id="new_tel" className="hb-input" type="text" value={clientForm.numerotelefonopersonal} onChange={setCF('numerotelefonopersonal')} placeholder="987654321" />
+                    </div>
+                  </div>
+
+                  <div className="hb-grid-2">
+                    <div className="hb-field">
+                      <label htmlFor="new_ingreso">Ingreso Neto Mensual (S/) *</label>
+                      <input 
+                        id="new_ingreso" 
+                        className="hb-input" 
+                        type="number" 
+                        min="0" 
+                        step="0.01" 
+                        value={clientForm.montoingresoneto} 
+                        onChange={(e) => {
+                          setCF('montoingresoneto')(e)
+                          setForm(f => ({ ...f, montoingresoneto: e.target.value }))
+                        }} 
+                      />
+                    </div>
+                    <div className="hb-field">
+                      <label htmlFor="new_actividad">Actividad (CIIU)</label>
+                      <select id="new_actividad" className="hb-select" value={clientForm.codactividadeconomica} onChange={setCF('codactividadeconomica')}>
+                        {ACTIVIDADES.map((a) => <option key={a.cod} value={a.cod}>{a.label}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </Card>
+          )}
+
+          <Card title="Datos de la Solicitud de Crédito" icon={<FilePlus2 size={18} />}>
+            {error && <Alert tipo="error">{error}</Alert>}
+            {validacion && <Alert tipo="warn">{validacion}</Alert>}
+
+            <form onSubmit={onSubmit}>
+              <div className="hb-grid-2">
+                <div className="hb-field">
+                  <label htmlFor="monto">Monto Solicitado (S/) *</label>
+                  <input id="monto" className="hb-input" type="number" min="1" step="0.01" value={form.montosolicitud} onChange={setF('montosolicitud')} placeholder="0.00" />
+                </div>
+                <div className="hb-field">
+                  <label htmlFor="plazo">Plazo (meses) *</label>
+                  <input id="plazo" className="hb-input" type="number" min="1" step="1" value={form.plazo} onChange={setF('plazo')} placeholder="Ej. 12" />
+                </div>
+              </div>
+
+              <div className="hb-grid-2">
+                <div className="hb-field">
+                  <label htmlFor="tipo">Tipo de Crédito *</label>
+                  <select id="tipo" className="hb-select" value={form.codtipocredito} onChange={setF('codtipocredito')}>
+                    <option value="CO">Consumo</option>
+                    <option value="ME">Microempresa</option>
+                  </select>
+                </div>
+                <div className="hb-field">
+                  <label htmlFor="ingreso">Ingreso Neto Evaluado (S/) *</label>
+                  <input 
+                    id="ingreso" 
+                    className="hb-input" 
+                    type="number" 
+                    min="0" 
+                    step="0.01" 
+                    value={form.montoingresoneto} 
+                    onChange={setF('montoingresoneto')} 
+                    placeholder="0.00" 
+                    disabled={clientMode === 'nuevo'} // Autocompletado del nuevo cliente
+                  />
+                </div>
+              </div>
+
               <div className="hb-field">
-                <label htmlFor="tipo">Tipo</label>
-                <select id="tipo" className="hb-select" value={form.codtipocredito} onChange={setF('codtipocredito')}>
-                  <option value="CO">Consumo</option>
-                  <option value="ME">Microempresa</option>
+                <label htmlFor="actividad">Actividad Económica *</label>
+                <select id="actividad" className="hb-select" value={form.codactividadeconomica} onChange={setF('codactividadeconomica')}>
+                  {ACTIVIDADES.map((a) => <option key={a.cod} value={a.cod}>{a.label}</option>)}
                 </select>
               </div>
-              <div className="hb-field">
-                <label htmlFor="ingreso">Ingreso (S/)</label>
-                <input id="ingreso" className="hb-input" type="number" min="0" step="0.01" value={form.montoingresoneto} onChange={setF('montoingresoneto')} />
+
+              <div className="hb-grid-2">
+                <div className="hb-field">
+                  <label htmlFor="fecha">Fecha Desembolso *</label>
+                  <input id="fecha" className="hb-input" type="date" value={form.fecha_desembolso} onChange={setF('fecha_desembolso')} />
+                </div>
+                <div className="hb-field">
+                  <label htmlFor="dia_pago">Día de Pago (1-31) *</label>
+                  <input id="dia_pago" className="hb-input" type="number" min="1" max="31" value={form.dia_pago} onChange={setF('dia_pago')} />
+                </div>
               </div>
-            </div>
 
-            <div className="hb-field">
-              <label htmlFor="actividad">Actividad (CIIU)</label>
-              <select id="actividad" className="hb-select" value={form.codactividadeconomica} onChange={setF('codactividadeconomica')}>
-                {ACTIVIDADES.map((a) => <option key={a.cod} value={a.cod}>{a.label}</option>)}
-              </select>
-            </div>
-
-            <div className="hb-grid-2">
-              <div className="hb-field">
-                <label htmlFor="fecha">Fecha Desembolso</label>
-                <input id="fecha" className="hb-input" type="date" value={form.fecha_desembolso} onChange={setF('fecha_desembolso')} />
+              <div className="hb-field" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 10 }}>
+                <input id="seguro" type="checkbox" checked={form.con_seguro} onChange={setF('con_seguro')} style={{ width: 18, height: 18, cursor: 'pointer' }} />
+                <label htmlFor="seguro" style={{ margin: 0, cursor: 'pointer' }}>Incluye Seguro de Desgravamen (TEA 40.92%)</label>
               </div>
-              <div className="hb-field">
-                <label htmlFor="dia_pago">Día de Pago (1-31)</label>
-                <input id="dia_pago" className="hb-input" type="number" min="1" max="31" value={form.dia_pago} onChange={setF('dia_pago')} />
-              </div>
-            </div>
+              {!form.con_seguro && <p style={{ fontSize: '0.8rem', color: 'var(--hb-text-muted)', marginTop: -6, marginLeft: 28 }}>Sin seguro, la TEA será de 43.92%</p>}
 
-            <div className="hb-field" style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <input id="seguro" type="checkbox" checked={form.con_seguro} onChange={setF('con_seguro')} style={{ width: 20, height: 20 }} />
-              <label htmlFor="seguro" style={{ margin: 0 }}>Incluye Seguro de Desgravamen (TEA 40.92%)</label>
-            </div>
-            {!form.con_seguro && <p style={{ fontSize: '0.8rem', color: 'var(--hb-text-muted)', marginTop: -10 }}>Sin seguro, la TEA será de 43.92%</p>}
-
-            <button type="submit" className="bbva-btn" disabled={loading} style={{ marginTop: 20 }}>
-              <FilePlus2 size={18} /> {loading ? 'Enviando...' : 'Enviar Solicitud'}
-            </button>
-          </form>
-        </Card>
+              <button type="submit" className="bbva-btn" disabled={loading} style={{ marginTop: 20, width: '100%' }}>
+                <FilePlus2 size={18} /> {loading ? 'Procesando...' : 'Enviar Solicitud'}
+              </button>
+            </form>
+          </Card>
+        </div>
       )}
     </PageLayout>
   )
 }
 
 function AdminCreditosList() {
+  const navigate = useNavigate()
   const [solicitudes, setSolicitudes] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -262,7 +504,10 @@ function AdminCreditosList() {
           <h1 className="bbva-page-title">Gestión de Créditos</h1>
           <p className="bbva-page-sub">Listado y evaluación de solicitudes</p>
         </div>
-        <div className="bbva-page-actions">
+        <div className="bbva-page-actions" style={{ display: 'flex', gap: '8px' }}>
+          <button className="bbva-btn" onClick={() => navigate('/admin/creditos?action=solicitar')}>
+            <FilePlus2 size={14} /> Registrar Solicitud
+          </button>
           <button className="bbva-btn-ghost" onClick={cargar} disabled={loading}><RefreshCw size={14} /> Actualizar</button>
         </div>
       </div>
@@ -270,13 +515,13 @@ function AdminCreditosList() {
       <Card>
         {error && <Alert tipo="error">{error}</Alert>}
         {loading && solicitudes.length === 0 ? <Loader text="Cargando solicitudes..." /> : (
-          <Tabla columns={cols} rows={solicitudes} rowKey="id" emptyText="No hay solicitudes" />
+          <Tabla columns={cols} rows={solicitudes} rowKey={(row) => row.id} emptyText="No hay solicitudes" />
         )}
       </Card>
 
       {cronograma && (
         <Card title={`Cronograma Generado (Solicitud ID ${cronograma.id})`} icon={<CalendarDays size={18} />} style={{ marginTop: '20px' }}>
-          <Tabla columns={cronoCols} rows={cronograma.cuotas} rowKey="nrocuota" />
+          <Tabla columns={cronoCols} rows={cronograma.cuotas} rowKey={(row) => row.nrocuota} />
         </Card>
       )}
     </PageLayout>
