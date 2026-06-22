@@ -24,3 +24,19 @@ class SolicitudCreditoResponse(BaseModel):
     estado: str
     montosolicitud: Decimal
     plazo: int
+
+class SimularCreditoRequest(BaseModel):
+    monto: Decimal = Field(..., gt=0)
+    tea: Decimal = Field(..., gt=0)
+    plazo: int = Field(..., gt=0, description="Plazo en meses")
+    tipo_desgravamen: Literal["estandar", "rescate", "ninguno"] = "estandar"
+    seguro_vida_tranki: bool = False
+    es_convenio: bool = False
+
+class SimularCreditoResponse(BaseModel):
+    monto_financiar: Decimal
+    cuota_pura: Decimal
+    seguro_desgravamen: Decimal
+    comision_planilla: Decimal
+    itf: Decimal
+    cuota_total: Decimal

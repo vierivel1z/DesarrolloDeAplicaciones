@@ -1259,16 +1259,17 @@ button {
   gap: 10px;
 }
 .gnb-utility-link {
-  font-size: 11.5px;
+  font-size: 14px;
   color: #71717a;
   text-decoration: none;
   font-weight: 500;
 }
 .gnb-utility-link:hover {
-  color: #0a2e5c;
+  color: var(--hb-red);
+  text-decoration: underline;
 }
 .gnb-utility-divider {
-  font-size: 11px;
+  font-size: 14px;
   color: #d4d4d8;
 }
 .gnb-search-box {
@@ -1316,7 +1317,7 @@ button {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 600;
   color: #52525b;
   text-decoration: none;
@@ -1353,7 +1354,7 @@ button {
   border: none;
   padding: 8px 16px;
   border-radius: 6px;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 700;
   cursor: pointer;
   transition: background 0.15s;
@@ -1369,7 +1370,7 @@ button {
   border: none;
   padding: 8px 18px;
   border-radius: 6px;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 700;
   cursor: pointer;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -1454,7 +1455,6 @@ button {
   display: flex;
   justify-content: space-between;
   padding: 10px 20px;
-  overflow-x: auto;
 }
 .gnb-submenu-item {
   display: flex;
@@ -1472,6 +1472,72 @@ button {
 }
 .gnb-submenu-arrow {
   color: #a1a1aa;
+}
+.gnb-submenu-item {
+  position: relative;
+}
+.gnb-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 550px;
+  background: #ffffff;
+  border-top: 3px solid #82bc00;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  display: flex;
+  visibility: hidden;
+  opacity: 0;
+  transition: all 0.2s ease-in-out;
+  transform: translateY(10px);
+  z-index: 200;
+  border-radius: 0 0 8px 8px;
+  overflow: hidden;
+  text-align: left;
+}
+.gnb-submenu-item:hover .gnb-dropdown-menu {
+  visibility: visible;
+  opacity: 1;
+  transform: translateY(0);
+}
+.gnb-dropdown-img-box {
+  width: 220px;
+  flex-shrink: 0;
+  background: #f4f4f5;
+}
+.gnb-dropdown-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.gnb-dropdown-content {
+  padding: 24px 30px;
+  flex: 1;
+}
+.gnb-dropdown-title {
+  color: #82bc00;
+  font-size: 18px;
+  font-weight: 800;
+  margin: 0 0 16px;
+  text-transform: uppercase;
+}
+.gnb-dropdown-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+.gnb-dropdown-link {
+  color: #52525b;
+  text-decoration: none;
+  font-size: 13.5px;
+  font-weight: 600;
+  transition: color 0.15s;
+  display: block;
+}
+.gnb-dropdown-link:hover {
+  color: #005691;
 }
 
 /* Mobile responsive styles */
@@ -3008,5 +3074,179 @@ button {
   flex-shrink: 0;
 }
 
+/* Cuentas Public Page */
+.gnb-breadcrumb-bar {
+  border-bottom: 1px solid #e5e7eb;
+  padding: 12px 0;
+  font-size: 11.5px;
+  color: #71717a;
+  background-color: #ffffff;
+}
+.gnb-breadcrumb-bar .gnb-container {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.gnb-breadcrumb-bar a {
+  color: #82bc00;
+  text-decoration: none;
+}
+.gnb-breadcrumb-bar a:hover {
+  text-decoration: underline;
+}
+.font-resizer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.font-resizer button {
+  background: none;
+  border: none;
+  color: #71717a;
+  cursor: pointer;
+  padding: 0;
+}
+.btn-size-s { font-size: 10px; }
+.btn-size-m { font-size: 12px; }
+.btn-size-l { font-size: 14px; }
 
+.gnb-cuentas-content {
+  display: grid;
+  grid-template-columns: 240px 1fr 300px;
+  gap: 40px;
+  max-width: 1180px;
+  margin: 40px auto;
+  padding: 0 20px;
+  align-items: start;
+}
 
+.gnb-sidebar-nav {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border-right: 1px solid #e5e7eb;
+  padding-right: 20px;
+}
+.gnb-sidebar-nav li {
+  margin-bottom: 16px;
+}
+.gnb-sidebar-nav a {
+  text-decoration: none;
+  color: #52525b;
+  font-size: 13.5px;
+  font-weight: 500;
+  transition: color 0.2s;
+  display: block;
+}
+.gnb-sidebar-nav a:hover, .gnb-sidebar-nav a.active {
+  color: #82bc00;
+  font-weight: 600;
+}
+
+.gnb-main-col {
+  padding-right: 20px;
+  border-right: 1px solid #e5e7eb;
+}
+
+.gnb-page-title {
+  color: #0a2e5c; /* Dark blue as requested */
+  font-size: 34px;
+  font-weight: 700;
+  margin: 0 0 16px;
+  line-height: 1;
+}
+.gnb-page-desc {
+  font-size: 15px;
+  color: #52525b;
+  margin-bottom: 30px;
+  line-height: 1.5;
+}
+.gnb-hero-img {
+  width: 100%;
+  border-radius: 4px;
+  margin-bottom: 30px;
+  object-fit: cover;
+}
+.gnb-section-title {
+  color: #b58047; /* Bronce/Orange tone */
+  font-size: 22px;
+  font-weight: 400;
+  margin-bottom: 16px;
+}
+.gnb-benefits-list {
+  color: #52525b;
+  font-size: 13px;
+  line-height: 1.6;
+  padding-left: 20px;
+}
+.gnb-benefits-list li {
+  margin-bottom: 14px;
+}
+.gnb-benefits-list li::marker {
+  color: #e85d04;
+}
+
+.gnb-right-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+.gnb-info-card h4 {
+  color: #e85d04; /* Orange tone for card titles */
+  font-size: 18px;
+  font-weight: 400;
+  margin: 0 0 12px;
+}
+.gnb-info-card img {
+  width: 100%;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 4px;
+  margin-bottom: 12px;
+}
+.gnb-info-card p {
+  color: #a1a1aa;
+  font-size: 12.5px;
+  margin: 0 0 10px;
+  line-height: 1.4;
+}
+.gnb-card-link {
+  display: block;
+  text-align: right;
+  color: #71717a;
+  font-size: 11.5px;
+  text-decoration: none;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 20px;
+}
+.gnb-card-link:hover {
+  color: #005691;
+}
+.gnb-security-notice {
+  font-size: 11.5px;
+  color: #71717a;
+  line-height: 1.5;
+}
+.gnb-security-notice ul {
+  padding-left: 16px;
+  margin-top: 10px;
+}
+.gnb-security-notice ul li {
+  margin-bottom: 8px;
+}
+.gnb-security-notice ul li::marker {
+  color: #e85d04;
+}
+
+@media (max-width: 900px) {
+  .gnb-cuentas-content {
+    grid-template-columns: 1fr;
+  }
+  .gnb-sidebar-nav, .gnb-main-col {
+    border-right: none;
+    padding-right: 0;
+  }
+}

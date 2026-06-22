@@ -6,3 +6,4 @@ python-jose==3.5.0
 bcrypt==5.0.0
 pydantic-settings==2.14.1
 python-dotenv==1.2.2
+python-dateutil==2.9.0.post0

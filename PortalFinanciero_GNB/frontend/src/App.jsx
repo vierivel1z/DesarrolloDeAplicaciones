@@ -4,6 +4,7 @@ import Header from './components/layout/Header.jsx'
 
 import LandingPage from './pages/LandingPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
+import CuentasPublicPage from './pages/CuentasPublicPage.jsx'
 import HomePage from './pages/HomePage.jsx'
 import CuentasAhorroPage from './pages/CuentasAhorroPage.jsx'
 import MovimientosPage from './pages/MovimientosPage.jsx'
@@ -36,6 +37,7 @@ export default function App() {
       {/* Públicas */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/cuentas" element={<CuentasPublicPage />} />
 
       {/* Privadas */}
       <Route path="/inicio" element={<PrivateLayout><HomePage /></PrivateLayout>} />

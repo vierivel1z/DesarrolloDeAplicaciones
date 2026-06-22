@@ -1,9 +1,10 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { 
-  MapPin, User, Lock, Search, Facebook, Instagram, ChevronDown, Menu, X 
+import {
+  MapPin, User, Lock, Search, Facebook, Instagram, ChevronDown, Menu, X
 } from 'lucide-react'
 import Logo from '../ui/Logo.jsx'
+import LogoImg from '../../images/image copy.png'
 
 export default function PublicHeader() {
   const navigate = useNavigate()
@@ -19,7 +20,7 @@ export default function PublicHeader() {
   ]
 
   const categories = [
-    'Cuentas', 'Depósitos', 'Préstamos', 'Proyectos Inmobiliarios', 
+    'Cuentas', 'Depósitos', 'Préstamos', 'Proyectos Inmobiliarios',
     'Tarjetas', 'Seguros', 'Servicios', 'Canales de Atención'
   ]
 
@@ -27,7 +28,7 @@ export default function PublicHeader() {
     <header className="gnb-public-header">
       {/* 1. Franja Gris/Blanca Superior (Utility Bar) */}
       <div className="gnb-top-utility">
-        <div className="gnb-header-container">
+        <div className="gnb-header-container" style={{ justifyContent: 'flex-end', gap: '24px' }}>
           <div className="gnb-utility-left">
             {topLinks.map((link, idx) => (
               <React.Fragment key={link.label}>
@@ -46,18 +47,22 @@ export default function PublicHeader() {
       </div>
 
       {/* 2. Barra Media de Branding y Botones Principales */}
-      <div className="gnb-top-main">
-        <div className="gnb-header-container">
-          <button className="gnb-brand-btn" onClick={() => navigate('/')} aria-label="Banco GNB">
-            <Logo size={42} variant="dark" />
+      <div className="gnb-top-main" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
+        {/* Nivel Superior: Logo */}
+        <div className="gnb-header-container" style={{ justifyContent: 'flex-start', padding: '16px 20px 8px 20px' }}>
+          <button className="gnb-brand-btn" onClick={() => navigate('/')} aria-label="Banco GNB" style={{ padding: 0 }}>
+            <img src={LogoImg} alt="Logo Principal" style={{ height: '81px', objectFit: 'contain' }} />
           </button>
+        </div>
 
-          <div className="gnb-actions-desktop">
+        {/* Nivel Inferior: Botones de Acción */}
+        <div className="gnb-header-container" style={{ justifyContent: 'flex-end', padding: '0px 20px 16px 20px' }}>
+          <div className="gnb-actions-desktop" style={{ display: 'flex', gap: '20px', alignItems: 'center', justifyContent: 'flex-end', width: '100%' }}>
             <a href="#" className="gnb-icon-link">
               <MapPin size={16} className="gnb-action-icon-blue" />
               <span>Red de Agencias</span>
             </a>
-            
+
             <a href="#" className="gnb-icon-link">
               <User size={16} className="gnb-action-icon-blue" />
               <span>Regístrate +</span>
@@ -70,7 +75,7 @@ export default function PublicHeader() {
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: 6 }}>
                   <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
                 </svg>
-                Solicita tu préstamo
+                <span style={{ textAlign: 'left', lineHeight: '1.1' }}>Solicita tu<br />préstamo</span>
               </button>
             </div>
 
@@ -80,21 +85,22 @@ export default function PublicHeader() {
                 <rect width="20" height="14" x="2" y="5" rx="2" />
                 <line x1="2" x2="22" y1="10" y2="10" />
               </svg>
-              Abre tu cuenta
+              <span style={{ textAlign: 'left', lineHeight: '1.1' }}>Abre tu<br />cuenta</span>
             </button>
 
             {/* Botón Banca por Internet (Lock icon + Green background) */}
             <button className="gnb-btn-internet" onClick={() => navigate('/login')}>
               <Lock size={14} style={{ marginRight: 6 }} />
-              Ingresa a Banca por Internet
+              <span style={{ textAlign: 'left', lineHeight: '1.1' }}>Ingresa a Banca<br />por internet</span>
             </button>
           </div>
 
           {/* Menú móvil burguer */}
-          <button 
-            className="gnb-mobile-toggle" 
+          <button
+            className="gnb-mobile-toggle"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle Menu"
+            style={{ position: 'absolute', right: '20px', top: '20px' }}
           >
             {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -105,26 +111,26 @@ export default function PublicHeader() {
       <div className="gnb-segment-bar">
         <div className="gnb-header-container">
           <div className="gnb-segments">
-            <button 
+            <button
               className={`gnb-segment-tab ${activeTab === 'personas' ? 'active' : ''}`}
               onClick={() => setActiveTab('personas')}
             >
               BANCA PERSONAS
             </button>
-            <button 
+            <button
               className={`gnb-segment-tab ${activeTab === 'empresas' ? 'active' : ''}`}
               onClick={() => setActiveTab('empresas')}
             >
               BANCA EMPRESAS
             </button>
-            <button 
+            <button
               className={`gnb-segment-tab ${activeTab === 'pensionista' ? 'active' : ''}`}
               onClick={() => setActiveTab('pensionista')}
             >
               BANCA PENSIONISTA
             </button>
           </div>
-          
+
           <div className="gnb-social-share">
             <span>Síguenos en:</span>
             <a href="#" aria-label="Facebook"><Facebook size={16} /></a>
@@ -137,9 +143,29 @@ export default function PublicHeader() {
       <div className="gnb-submenu-bar">
         <div className="gnb-header-container gnb-submenu-container">
           {categories.map((cat) => (
-            <div key={cat} className="gnb-submenu-item">
+            <div key={cat} className="gnb-submenu-item" onClick={() => cat === 'Cuentas' && navigate('/cuentas')}>
               <span>{cat}</span>
               <ChevronDown size={12} className="gnb-submenu-arrow" />
+
+              {cat === 'Cuentas' && (
+                <div className="gnb-dropdown-menu">
+                  <div className="gnb-dropdown-img-box">
+                    <img src="/images/cuentas_menu_banner.png" alt="Cuentas" className="gnb-dropdown-img" />
+                  </div>
+                  <div className="gnb-dropdown-content">
+                    <h3 className="gnb-dropdown-title">Cuentas</h3>
+                    <ul className="gnb-dropdown-list">
+                      <li><a href="#" className="gnb-dropdown-link">Cuenta Ahorro Rolando</a></li>
+                      <li><a href="#" className="gnb-dropdown-link">Cuenta Corriente</a></li>
+                      <li><a href="#" className="gnb-dropdown-link">Cuenta Transaccional</a></li>
+                      <li><a href="#" className="gnb-dropdown-link">Cuenta Ahorro</a></li>
+                      <li><a href="#" className="gnb-dropdown-link">Cuenta Ahorro Hipotecario</a></li>
+                      <li><a href="#" className="gnb-dropdown-link">Cuenta Sueldo</a></li>
+                      <li><a href="#" className="gnb-dropdown-link">Cuenta CTS</a></li>
+                    </ul>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -160,7 +186,7 @@ export default function PublicHeader() {
               Solicita tu préstamo
             </button>
           </div>
-          
+
           <div className="gnb-mobile-links">
             <a href="#" className="gnb-mobile-link"><MapPin size={16} style={{ marginRight: 8 }} /> Red de Agencias</a>
             <a href="#" className="gnb-mobile-link"><User size={16} style={{ marginRight: 8 }} /> Regístrate +</a>

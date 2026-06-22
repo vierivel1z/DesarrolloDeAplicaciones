@@ -9,7 +9,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.cfg_config import settings
-from app.routes import route_auth, route_creditos, route_cuentas, route_operaciones, route_admin
+from app.routes import route_auth, route_creditos, route_cuentas, route_operaciones, route_admin, route_registro, route_tarjetas
 
 app = FastAPI(
     title="Banca Internet Banco GNB — Homebanking API",
@@ -31,7 +31,8 @@ app.include_router(route_cuentas.router)
 app.include_router(route_operaciones.router)
 app.include_router(route_creditos.router)
 app.include_router(route_admin.router)
-
+app.include_router(route_registro.router)
+app.include_router(route_tarjetas.router)
 
 @app.get("/", tags=["root"])
 def raiz():
