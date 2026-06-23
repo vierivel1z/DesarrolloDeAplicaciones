@@ -1,7 +1,16 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { FilePlus2, ArrowLeft, RefreshCw, CheckCircle, Play, FileText, CalendarDays } from 'lucide-react'
-import { getAdminSolicitudes, adminSolicitarCredito, adminEvaluarSolicitud, adminDesembolsarSolicitud, adminBuscarClientes, adminCrearCliente } from '../services/adminService.js'
+import { 
+  getAdminSolicitudes, 
+  adminSolicitarCredito, 
+  adminEvaluarSolicitud, 
+  adminDesembolsarSolicitud, 
+  adminBuscarClientes, 
+  adminCrearCliente,
+  getAdminSolicitudDetalle,
+  adminRechazarSolicitud
+} from '../services/adminService.js'
 import { toNumber, formatDate } from '../utils/format.js'
 import PageLayout from '../components/layout/PageLayout.jsx'
 import Card from '../components/ui/Card.jsx'
@@ -427,6 +436,13 @@ function AdminCreditosList() {
   const [cronograma, setCronograma] = useState(null)
   const [evaluando, setEvaluando] = useState(null)
 
+  // Modal / Detail states
+  const [selectedDetalle, setSelectedDetalle] = useState(null)
+  const [detalleLoading, setDetalleLoading] = useState(false)
+  const [modalOpen, setModalOpen] = useState(false)
+  const [rechazando, setRechazando] = useState(false)
+  const [desembolsando, setDesembolsando] = useState(false)
+
   const cargar = () => {
     setLoading(true)
     getAdminSolicitudes()
@@ -439,11 +455,25 @@ function AdminCreditosList() {
     cargar()
   }, [])
 
-  const handleEvaluar = async (id) => {
+  const handleVerDetalle = async (id) => {
+    try {
+      setDetalleLoading(true)
+      const data = await getAdminSolicitudDetalle(id)
+      setSelectedDetalle(data)
+      setModalOpen(true)
+    } catch (e) {
+      alert('Error al cargar el detalle de la solicitud: ' + (e.response?.data?.detail || e.message))
+    } finally {
+      setDetalleLoading(false)
+    }
+  }
+
+  const handleAprobarDesdeModal = async (id) => {
     try {
       setEvaluando(id)
       const res = await adminEvaluarSolicitud(id)
       setCronograma({ id, cuotas: res.cronograma, total: res.monto_total })
+      setModalOpen(false)
       cargar()
     } catch (e) {
       alert('Error evaluando: ' + (e.response?.data?.detail || e.message))
@@ -452,17 +482,33 @@ function AdminCreditosList() {
     }
   }
 
-  const handleDesembolsar = async (id) => {
-    if (!confirm('¿Seguro de desembolsar esta solicitud? Se abonará el monto a la cuenta de ahorros.')) return
+  const handleRechazarDesdeModal = async (id) => {
+    if (!confirm('¿Seguro de rechazar esta solicitud de crédito?')) return
     try {
-      setLoading(true)
+      setRechazando(true)
+      await adminRechazarSolicitud(id)
+      alert('Solicitud rechazada exitosamente')
+      setModalOpen(false)
+      cargar()
+    } catch (e) {
+      alert('Error rechazando: ' + (e.response?.data?.detail || e.message))
+    } finally {
+      setRechazando(false)
+    }
+  }
+
+  const handleDesembolsarDesdeModal = async (id) => {
+    if (!confirm('¿Seguro de desembolsar esta solicitud? Se abonará el monto a la cuenta de ahorros del cliente.')) return
+    try {
+      setDesembolsando(true)
       await adminDesembolsarSolicitud(id)
       alert('Desembolso exitoso')
+      setModalOpen(false)
       cargar()
     } catch (e) {
       alert('Error desembolsando: ' + (e.response?.data?.detail || e.message))
     } finally {
-      setLoading(false)
+      setDesembolsando(false)
     }
   }
 
@@ -474,14 +520,22 @@ function AdminCreditosList() {
     { key: 'estado', header: 'Estado', render: (s) => <Badge estado={s.estado} /> },
     { key: 'acciones', header: 'Acciones', render: (s) => (
       <div style={{ display: 'flex', gap: '8px' }}>
-        {s.pksolicitudestado === 1 && (
-          <button className="bbva-btn-ghost" style={{ padding: '4px 8px', fontSize: '0.8rem' }} onClick={() => handleEvaluar(s.id)} disabled={evaluando === s.id}>
-            <Play size={14} /> Evaluar
-          </button>
-        )}
+        <button 
+          className="bbva-btn-ghost" 
+          style={{ padding: '4px 8px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px' }} 
+          onClick={() => handleVerDetalle(s.id)}
+          disabled={detalleLoading}
+        >
+          <Play size={12} /> Evaluar / Ver
+        </button>
         {s.pksolicitudestado === 2 && (
-          <button className="bbva-btn" style={{ padding: '4px 8px', fontSize: '0.8rem' }} onClick={() => handleDesembolsar(s.id)}>
-            <CheckCircle size={14} /> Desembolsar
+          <button 
+            className="bbva-btn" 
+            style={{ padding: '4px 8px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px' }} 
+            onClick={() => handleDesembolsarDesdeModal(s.id)}
+            disabled={desembolsando}
+          >
+            <CheckCircle size={12} /> Desembolsar
           </button>
         )}
       </div>
@@ -524,6 +578,354 @@ function AdminCreditosList() {
           <Tabla columns={cronoCols} rows={cronograma.cuotas} rowKey={(row) => row.nrocuota} />
         </Card>
       )}
+
+      {/* Modal de Detalle y Scoring */}
+      <SolicitudDetalleModal 
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        detalle={selectedDetalle}
+        onAprobar={handleAprobarDesdeModal}
+        onRechazar={handleRechazarDesdeModal}
+        onDesembolsar={handleDesembolsarDesdeModal}
+        evaluando={evaluando !== null}
+        rechazando={rechazando}
+        desembolsando={desembolsando}
+      />
     </PageLayout>
   )
+}
+
+function SolicitudDetalleModal({ isOpen, onClose, detalle, onAprobar, onRechazar, onDesembolsar, evaluando, rechazando, desembolsando }) {
+  if (!isOpen || !detalle) return null;
+
+  const { solicitud, cliente, finanzas, scoring } = detalle;
+
+  const getSbsColor = (code) => {
+    if (code === '0') return '#73b71c'; // Normal -> verde
+    if (code === '1') return '#ff9800'; // CPP -> naranja
+    return '#f44336'; // Deficiente/Dudoso/Pérdida -> rojo
+  };
+
+  const scorePercentage = Math.max(0, Math.min(100, ((scoring.score - 300) / 550) * 100));
+
+  return (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(7, 33, 70, 0.75)',
+      backdropFilter: 'blur(4px)',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 1100,
+      padding: '20px',
+    }}>
+      <div style={{
+        backgroundColor: '#ffffff',
+        borderRadius: '16px',
+        boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
+        width: '100%',
+        maxWidth: '850px',
+        maxHeight: '90vh',
+        overflowY: 'auto',
+        border: '1px solid #e2e8f0',
+        display: 'flex',
+        flexDirection: 'column',
+      }}>
+        {/* Header */}
+        <div style={{
+          padding: '18px 24px',
+          borderBottom: '1px solid #e2e8f0',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          backgroundColor: '#072146',
+          color: '#ffffff',
+          borderTopLeftRadius: '15px',
+          borderTopRightRadius: '15px',
+        }}>
+          <div>
+            <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600 }}>
+              Evaluación de Crédito: {solicitud.codsolicitud}
+            </h2>
+            <span style={{ fontSize: '0.85rem', opacity: 0.85 }}>
+              Cliente: {cliente.nombre}
+            </span>
+          </div>
+          <button 
+            onClick={onClose}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#ffffff',
+              cursor: 'pointer',
+              fontSize: '1.5rem',
+              lineHeight: 1,
+              padding: 0,
+            }}
+          >
+            &times;
+          </button>
+        </div>
+
+        {/* Content */}
+        <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          {/* Fila superior: Perfil Cliente & Detalles de Solicitud */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
+            gap: '20px',
+          }}>
+            {/* Perfil del Cliente */}
+            <div style={{
+              backgroundColor: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: '12px',
+              padding: '16px',
+            }}>
+              <h3 style={{ margin: '0 0 12px 0', fontSize: '1rem', color: '#072146', borderBottom: '2px solid #004481', paddingBottom: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                👤 Perfil del Cliente
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.9rem' }}>
+                <div><strong>Código de Cliente:</strong> <code style={{ color: '#004481' }}>{cliente.codcliente}</code></div>
+                <div><strong>Documento (DNI/RUC):</strong> {cliente.nro_documento}</div>
+                <div><strong>Correo Electrónico:</strong> {cliente.email}</div>
+                <div><strong>Teléfono Celular:</strong> {cliente.telefono}</div>
+                <div><strong>Ingreso Neto Mensual:</strong> <span style={{ fontWeight: 600, color: '#73b71c' }}>S/ {toNumber(cliente.montoingresoneto).toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span></div>
+                <div><strong>Actividad Económica:</strong> {cliente.actividad_desc}</div>
+              </div>
+            </div>
+
+            {/* Detalles de la Solicitud */}
+            <div style={{
+              backgroundColor: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: '12px',
+              padding: '16px',
+            }}>
+              <h3 style={{ margin: '0 0 12px 0', fontSize: '1rem', color: '#072146', borderBottom: '2px solid #004481', paddingBottom: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                📄 Solicitud de Crédito
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.9rem' }}>
+                <div><strong>Tipo de Producto:</strong> {solicitud.producto_tipo}</div>
+                <div><strong>Subtipo:</strong> {solicitud.producto_subtipo}</div>
+                <div><strong>Monto Solicitado:</strong> <span style={{ fontWeight: 600, color: '#004481' }}>S/ {toNumber(solicitud.monto).toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span></div>
+                <div><strong>Plazo del Crédito:</strong> {solicitud.plazo} meses</div>
+                <div><strong>Tasa de Interés (TEA):</strong> {(toNumber(solicitud.tea) * 100).toFixed(2)}%</div>
+                <div><strong>Día de Pago Fijo:</strong> Día {solicitud.dia_pago}</div>
+                <div><strong>Fecha Desembolso Planificada:</strong> {solicitud.fecha_desembolso ? formatDate(solicitud.fecha_desembolso) : 'Inmediato'}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Fila del medio: Financiero & Scoring */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
+            gap: '20px',
+          }}>
+            {/* Financiero */}
+            <div style={{
+              backgroundColor: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: '12px',
+              padding: '16px',
+            }}>
+              <h3 style={{ margin: '0 0 12px 0', fontSize: '1rem', color: '#072146', borderBottom: '2px solid #004481', paddingBottom: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                📊 Balance y Riesgo del Cliente
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.9rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed #cbd5e1', paddingBottom: '6px' }}>
+                  <span>Ahorros Totales:</span>
+                  <span style={{ fontWeight: 600, color: '#2e7d32' }}>S/ {finanzas.ahorros_total.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed #cbd5e1', paddingBottom: '6px' }}>
+                  <span>Deuda Vigente en el Banco:</span>
+                  <span style={{ fontWeight: 600, color: '#c62828' }}>S/ {finanzas.deuda_total.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '4px' }}>
+                  <span>Calificación SBS:</span>
+                  <span style={{
+                    fontWeight: 600,
+                    color: '#ffffff',
+                    backgroundColor: getSbsColor(finanzas.calificacion_code),
+                    padding: '4px 10px',
+                    borderRadius: '20px',
+                    fontSize: '0.8rem',
+                  }}>
+                    {finanzas.calificacion_sbs}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Scoring */}
+            <div style={{
+              backgroundColor: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: '12px',
+              padding: '16px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+            }}>
+              <h3 style={{ margin: '0 0 8px 0', fontSize: '1rem', color: '#072146', borderBottom: '2px solid #004481', paddingBottom: '4px' }}>
+                🎯 Risk Scoring Evaluado
+              </h3>
+              <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                {/* Score Circular Gauge */}
+                <div style={{
+                  position: 'relative',
+                  width: '90px',
+                  height: '90px',
+                  borderRadius: '50%',
+                  background: `conic-gradient(${scoring.color_evaluacion === 'green' ? '#73b71c' : '#e53935'} ${scorePercentage * 3.6}deg, #e2e8f0 0deg)`,
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}>
+                  <div style={{
+                    position: 'absolute',
+                    width: '74px',
+                    height: '74px',
+                    borderRadius: '50%',
+                    backgroundColor: '#ffffff',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}>
+                    <span style={{ fontSize: '1.25rem', fontWeight: 700, color: '#072146', lineHeight: 1 }}>
+                      {scoring.score}
+                    </span>
+                    <span style={{ fontSize: '0.65rem', color: '#64748b' }}>pts</span>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.85rem', flex: 1 }}>
+                  <div><strong>Score Obtenido:</strong> {scoring.score} puntos</div>
+                  <div><strong>Mínimo Requerido:</strong> {scoring.score_requerido} puntos</div>
+                  <div style={{
+                    marginTop: '6px',
+                    padding: '4px 8px',
+                    borderRadius: '6px',
+                    backgroundColor: scoring.aprobado_por_score ? '#f0fdf4' : '#fef2f2',
+                    border: `1px solid ${scoring.aprobado_por_score ? '#bbf7d0' : '#fecaca'}`,
+                    color: scoring.aprobado_por_score ? '#15803d' : '#b91c1c',
+                    fontWeight: 600,
+                    textAlign: 'center',
+                    fontSize: '0.8rem'
+                  }}>
+                    {scoring.aprobado_por_score ? '✅ SCORE APTO' : '❌ SCORE INSUFICIENTE'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Banner de dictamen */}
+          <div style={{
+            backgroundColor: scoring.aprobado_por_score ? '#f0fdf4' : '#fef2f2',
+            border: `1px solid ${scoring.aprobado_por_score ? '#bbf7d0' : '#fecaca'}`,
+            borderRadius: '12px',
+            padding: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+          }}>
+            <span style={{ fontSize: '1.75rem' }}>
+              {scoring.aprobado_por_score ? '🛡️' : '⚠️'}
+            </span>
+            <div>
+              <h4 style={{ margin: '0 0 4px 0', fontSize: '0.95rem', color: scoring.aprobado_por_score ? '#166534' : '#991b1b', fontWeight: 600 }}>
+                {scoring.evaluacion_sugerida}
+              </h4>
+              <p style={{ margin: 0, fontSize: '0.85rem', color: '#475569' }}>
+                {scoring.aprobado_por_score 
+                  ? 'El cliente posee una solvencia crediticia y score por encima del mínimo requerido para este subproducto.'
+                  : 'Se recomienda el rechazo automático de la solicitud de crédito debido a un score crediticio desfavorable para mitigar el riesgo de mora.'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div style={{
+          padding: '16px 24px',
+          borderTop: '1px solid #e2e8f0',
+          display: 'flex',
+          justifyContent: 'space-between',
+          backgroundColor: '#f8fafc',
+          borderBottomLeftRadius: '15px',
+          borderBottomRightRadius: '15px',
+        }}>
+          <div>
+            <button 
+              className="bbva-btn-ghost" 
+              onClick={onClose}
+              style={{ padding: '8px 16px' }}
+            >
+              Cerrar
+            </button>
+          </div>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            {solicitud.pksolicitudestado === 1 && (
+              <>
+                <button 
+                  onClick={() => onRechazar(solicitud.id)}
+                  disabled={rechazando || evaluando}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: '9px',
+                    border: '1px solid #ef4444',
+                    backgroundColor: '#ffffff',
+                    color: '#ef4444',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  {rechazando ? 'Rechazando...' : 'Rechazar Solicitud'}
+                </button>
+                <button 
+                  onClick={() => onAprobar(solicitud.id)}
+                  disabled={evaluando || rechazando}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: '9px',
+                    border: 'none',
+                    backgroundColor: scoring.aprobado_por_score ? '#73b71c' : '#64748b',
+                    color: '#ffffff',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  {evaluando ? 'Aprobando...' : 'Aprobar Solicitud'}
+                </button>
+              </>
+            )}
+            {solicitud.pksolicitudestado === 2 && (
+              <button 
+                onClick={() => onDesembolsar(solicitud.id)}
+                disabled={desembolsando}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '9px',
+                  border: 'none',
+                  backgroundColor: '#004481',
+                  color: '#ffffff',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                {desembolsando ? 'Procesando...' : 'Desembolsar Crédito'}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
