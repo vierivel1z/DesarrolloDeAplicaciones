@@ -30,9 +30,10 @@ export default function SolicitarCreditoPage() {
   const [form, setForm] = useState({
     montosolicitud: '',
     plazo: '',
-    codtipocredito: 'CO',
+    codtipocredito: 'FACIL',
     codactividadeconomica: '0111',
     montoingresoneto: '',
+    tipo_desgravamen: 'estandar'
   })
 
   const setF = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }))
@@ -57,6 +58,8 @@ export default function SolicitarCreditoPage() {
         codtipocredito: form.codtipocredito,
         codactividadeconomica: form.codactividadeconomica,
         montoingresoneto: ingreso,
+        con_seguro: form.tipo_desgravamen !== 'ninguno',
+        tipo_desgravamen: form.tipo_desgravamen === 'ninguno' ? 'estandar' : form.tipo_desgravamen
       })
     } catch {
       /* mensaje de elegibilidad se muestra vía `error` */
@@ -65,7 +68,7 @@ export default function SolicitarCreditoPage() {
 
   const nuevaSolicitud = () => {
     reset()
-    setForm({ montosolicitud: '', plazo: '', codtipocredito: 'CO', codactividadeconomica: '0111', montoingresoneto: '' })
+    setForm({ montosolicitud: '', plazo: '', codtipocredito: 'FACIL', codactividadeconomica: '0111', montoingresoneto: '', tipo_desgravamen: 'estandar' })
   }
 
   return (
@@ -117,10 +120,15 @@ export default function SolicitarCreditoPage() {
 
             <div className="hb-grid-2">
               <div className="hb-field">
-                <label htmlFor="tipo">Tipo de crédito</label>
+                <label htmlFor="tipo">Producto de Crédito *</label>
                 <select id="tipo" className="hb-select" value={form.codtipocredito} onChange={setF('codtipocredito')}>
-                  <option value="CO">CO — Consumo</option>
-                  <option value="ME">ME — Microempresa</option>
+                  <option value="FACIL">Préstamo Fácil (Desde 8.99%)</option>
+                  <option value="LIBRE">Libre Disponibilidad (Desde 10.50%)</option>
+                  <option value="ESTANDAR">Personal Estándar (Desde 13.00%)</option>
+                  <option value="CONVENIO">Por Convenio (Desde 15.00%)</option>
+                  <option value="YAPE">Billetera Digital (Desde 29.00%)</option>
+                  <option value="ME">Microempresa</option>
+                  <option value="CO">Consumo General</option>
                 </select>
               </div>
               <div className="hb-field">
@@ -130,13 +138,23 @@ export default function SolicitarCreditoPage() {
               </div>
             </div>
 
-            <div className="hb-field">
-              <label htmlFor="actividad">Actividad económica (CIIU)</label>
-              <select id="actividad" className="hb-select" value={form.codactividadeconomica} onChange={setF('codactividadeconomica')}>
-                {ACTIVIDADES.map((a) => (
-                  <option key={a.cod} value={a.cod}>{a.label}</option>
-                ))}
-              </select>
+            <div className="hb-grid-2">
+              <div className="hb-field">
+                <label htmlFor="actividad">Actividad económica (CIIU)</label>
+                <select id="actividad" className="hb-select" value={form.codactividadeconomica} onChange={setF('codactividadeconomica')}>
+                  {ACTIVIDADES.map((a) => (
+                    <option key={a.cod} value={a.cod}>{a.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="hb-field">
+                <label htmlFor="desgravamen">Seguro de Desgravamen</label>
+                <select id="desgravamen" className="hb-select" value={form.tipo_desgravamen} onChange={setF('tipo_desgravamen')}>
+                  <option value="estandar">Individual (0.0738% mensual)</option>
+                  <option value="rescate">Con Rescate (0.175% mensual)</option>
+                  <option value="ninguno">Sin Seguro (Sujeto a evaluación)</option>
+                </select>
+              </div>
             </div>
 
             <button type="submit" className="bbva-btn" disabled={loading}>

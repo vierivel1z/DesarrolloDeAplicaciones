@@ -18,6 +18,7 @@ import SolicitarCreditoPage from './pages/SolicitarCreditoPage.jsx'
 import AdminClientesPage from './pages/AdminClientesPage.jsx'
 import AdminCreditosPage from './pages/AdminCreditosPage.jsx'
 import AdminPowerBiPage from './pages/AdminPowerBiPage.jsx'
+import AdminMoraPage from './pages/AdminMoraPage.jsx'
 
 // Layout para las rutas autenticadas: cabecera BBVA + contenido.
 function PrivateLayout({ children }) {
@@ -56,6 +57,7 @@ export default function App() {
       {/* Rutas de Administrador */}
       <Route path="/admin/clientes" element={<PrivateLayout><AdminClientesPage /></PrivateLayout>} />
       <Route path="/admin/creditos" element={<PrivateLayout><AdminCreditosPage /></PrivateLayout>} />
+      <Route path="/admin/mora" element={<PrivateLayout><AdminMoraPage /></PrivateLayout>} />
       <Route path="/admin/powerbi" element={<PrivateLayout><AdminPowerBiPage /></PrivateLayout>} />
 
       <Route path="*" element={<Navigate to="/inicio" replace />} />

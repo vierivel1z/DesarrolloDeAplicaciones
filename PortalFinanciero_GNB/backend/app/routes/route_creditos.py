@@ -29,6 +29,10 @@ def solicitar(
         body.codtipocredito,
         body.codactividadeconomica,
         body.montoingresoneto,
+        body.con_seguro,
+        body.tipo_desgravamen,
+        body.fecha_desembolso,
+        body.dia_pago,
     )
 
 @router.post("/simular", response_model=SimularCreditoResponse)

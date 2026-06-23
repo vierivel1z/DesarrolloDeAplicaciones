@@ -72,10 +72,11 @@ function AdminSolicitarCreditoForm() {
   const [form, setForm] = useState({
     montosolicitud: '',
     plazo: '',
-    codtipocredito: 'CO',
+    codtipocredito: 'FACIL',
     codactividadeconomica: '0111',
     montoingresoneto: '',
     con_seguro: true,
+    tipo_desgravamen: 'estandar',
     fecha_desembolso: new Date().toISOString().split('T')[0],
     dia_pago: 1,
   })
@@ -161,7 +162,8 @@ function AdminSolicitarCreditoForm() {
         codtipocredito: form.codtipocredito,
         codactividadeconomica: form.codactividadeconomica,
         montoingresoneto: ingreso,
-        con_seguro: form.con_seguro,
+        con_seguro: form.tipo_desgravamen !== 'ninguno',
+        tipo_desgravamen: form.tipo_desgravamen === 'ninguno' ? 'estandar' : form.tipo_desgravamen,
         fecha_desembolso: form.fecha_desembolso,
         dia_pago
       })
@@ -362,10 +364,15 @@ function AdminSolicitarCreditoForm() {
 
               <div className="hb-grid-2">
                 <div className="hb-field">
-                  <label htmlFor="tipo">Tipo de Crédito *</label>
+                  <label htmlFor="tipo">Producto de Crédito *</label>
                   <select id="tipo" className="hb-select" value={form.codtipocredito} onChange={setF('codtipocredito')}>
-                    <option value="CO">Consumo</option>
+                    <option value="FACIL">Préstamo Fácil (Desde 8.99%)</option>
+                    <option value="LIBRE">Libre Disponibilidad (Desde 10.50%)</option>
+                    <option value="ESTANDAR">Personal Estándar (Desde 13.00%)</option>
+                    <option value="CONVENIO">Por Convenio (Desde 15.00%)</option>
+                    <option value="YAPE">Billetera Digital (Desde 29.00%)</option>
                     <option value="ME">Microempresa</option>
+                    <option value="CO">Consumo General</option>
                   </select>
                 </div>
                 <div className="hb-field">
@@ -402,11 +409,14 @@ function AdminSolicitarCreditoForm() {
                 </div>
               </div>
 
-              <div className="hb-field" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 10 }}>
-                <input id="seguro" type="checkbox" checked={form.con_seguro} onChange={setF('con_seguro')} style={{ width: 18, height: 18, cursor: 'pointer' }} />
-                <label htmlFor="seguro" style={{ margin: 0, cursor: 'pointer' }}>Incluye Seguro de Desgravamen (TEA 40.92%)</label>
+              <div className="hb-field" style={{ marginTop: 10 }}>
+                <label htmlFor="desgravamen">Seguro de Desgravamen *</label>
+                <select id="desgravamen" className="hb-select" value={form.tipo_desgravamen} onChange={setF('tipo_desgravamen')}>
+                  <option value="estandar">Individual (0.0738% mensual)</option>
+                  <option value="rescate">Con Rescate (0.175% mensual)</option>
+                  <option value="ninguno">Sin Seguro (Sujeto a evaluación)</option>
+                </select>
               </div>
-              {!form.con_seguro && <p style={{ fontSize: '0.8rem', color: 'var(--hb-text-muted)', marginTop: -6, marginLeft: 28 }}>Sin seguro, la TEA será de 43.92%</p>}
 
               <button type="submit" className="bbva-btn" disabled={loading} style={{ marginTop: 20, width: '100%' }}>
                 <FilePlus2 size={18} /> {loading ? 'Procesando...' : 'Enviar Solicitud'}
@@ -472,6 +482,22 @@ function AdminCreditosList() {
     { key: 'monto', header: 'Monto', align: 'right', render: (s) => <Money value={s.monto} /> },
     { key: 'plazo', header: 'Plazo', align: 'center', render: (s) => `${s.plazo}m` },
     { key: 'estado', header: 'Estado', render: (s) => <Badge estado={s.estado} /> },
+    { key: 'evaluacion', header: 'Evaluación (Scoring/RDS)', render: (s) => {
+      if (!s.desmotivosolicitud) return '-';
+      try {
+        const ev = JSON.parse(s.desmotivosolicitud);
+        const colorRDS = ev.semaforo_rds === 'Rojo' ? 'red' : (ev.semaforo_rds === 'Amarillo' ? 'amber' : 'green');
+        const colorScore = ev.aprobado_scoring ? 'green' : 'red';
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.8rem' }}>
+            <div><Badge estado={`PD: ${ev.score_pd_porcentaje}%`} tone={colorScore} /></div>
+            <div><Badge estado={`RDS: ${ev.rds_porcentaje}%`} tone={colorRDS} /></div>
+          </div>
+        );
+      } catch (e) {
+        return <span style={{ fontSize: '0.8rem' }}>{s.desmotivosolicitud}</span>;
+      }
+    }},
     { key: 'acciones', header: 'Acciones', render: (s) => (
       <div style={{ display: 'flex', gap: '8px' }}>
         {s.pksolicitudestado === 1 && (

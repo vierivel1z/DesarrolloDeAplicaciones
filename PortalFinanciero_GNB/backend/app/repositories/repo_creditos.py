@@ -13,7 +13,15 @@ from sqlalchemy.engine import Connection
 from app.repositories.repo_cuentas import PERIODO_CARTERA
 
 # codtipocredito del portal -> codtipocredito en dproducto
-MAPA_TIPO_CREDITO = {"ME": "01", "CO": "03"}  # ME=Microempresa, CO=Consumo
+MAPA_TIPO_CREDITO = {
+    "ME": "01", 
+    "CO": "03",
+    "FACIL": "03",
+    "LIBRE": "03",
+    "ESTANDAR": "03",
+    "CONVENIO": "03",
+    "YAPE": "03"
+}  # ME=Microempresa, CO=Consumo
 ESTADO_EN_EVALUACION = "01"  # dsolicitudestado.codsolicitudestado
 
 def listar_solicitudes(conn: Connection) -> list[dict]:
@@ -22,7 +30,8 @@ def listar_solicitudes(conn: Connection) -> list[dict]:
         """
         SELECT s.pksolicitud as id, s.codsolicitud, s.pkcliente, c.nomcliente, c.numerodocumentoidentidad,
                s.montosolicitudcredito as monto, s.plazosolicitudcredito as plazo, s.fechasolicitudcredito as fecha,
-               e.dessolicitudestado as estado, s.pksolicitudestado
+               e.dessolicitudestado as estado, s.pksolicitudestado,
+               s.pknivelaprobacion, s.desmotivosolicitud
         FROM dsolicitud s
         JOIN dcliente c ON c.pkcliente = s.pkcliente
         JOIN dsolicitudestado e ON e.pksolicitudestado = s.pksolicitudestado
@@ -55,6 +64,19 @@ def _pk_actividad(conn: Connection, cod: str) -> int | None:
     return conn.execute(
         text("SELECT pkactividadeconomica FROM dactividadeconomica WHERE TRIM(codactividadeconomica) = :c"),
         {"c": cod},
+    ).scalar()
+
+
+def _pk_nivel_aprobacion(conn: Connection, monto: Decimal) -> int | None:
+    return conn.execute(
+        text(
+            """
+            SELECT pknivelaprobacion FROM dnivelaprobacion
+            WHERE :monto >= montominimo AND :monto <= montomaximo
+            ORDER BY pknivelaprobacion ASC LIMIT 1
+            """
+        ),
+        {"monto": monto},
     ).scalar()
 
 
@@ -109,13 +131,16 @@ def crear_solicitud(
     con_seguro: bool = True,
     fecha_desembolso: str | None = None,
     dia_pago: int | None = None,
+    pknivelaprobacion: int | None = None,
+    desmotivosolicitud: str | None = None,
+    tea_calculada: Decimal | None = None,
 ) -> dict:
     """Registra una solicitud en dsolicitud (estado inicial 'En Evaluación').
 
     pksolicitud proviene de dsolicitud_pksolicitud_seq y codsolicitud se deriva
     con 'SOL' || LPAD(currval(...)::text, 7, '0').
     """
-    tea = Decimal('0.4092') if con_seguro else Decimal('0.4392')
+    tea = tea_calculada if tea_calculada is not None else (Decimal('0.4092') if con_seguro else Decimal('0.4392'))
     cod_tipo_producto = MAPA_TIPO_CREDITO[codtipocredito]
     pkproducto = _pk_producto_por_tipo(conn, cod_tipo_producto)
     if pkproducto is None:
@@ -149,6 +174,7 @@ def crear_solicitud(
                 flaglibreamortizacioncredito, nrodiasgracia,
                 pkactividadeconomicasolicitud, pkagencia, pkasesor,
                 tasainterescompensatoria, diafechafija, fechaaprobacioncredito,
+                pknivelaprobacion, desmotivosolicitud,
                 fechahoracreacion, fechahoraultmodificacion, fecultactualizacion
             ) VALUES (
                 nextval('dsolicitud_pksolicitud_seq'),
@@ -161,6 +187,7 @@ def crear_solicitud(
                 'N', 0,
                 :pkactividad, :pkagencia, :pkasesor,
                 :tea, :dia_pago, :fecha_desembolso,
+                :pknivelaprobacion, :desmotivosolicitud,
                 now(), now(), now()
             )
             RETURNING pksolicitud, codsolicitud
@@ -179,6 +206,8 @@ def crear_solicitud(
             "tea": tea,
             "dia_pago": dia_pago,
             "fecha_desembolso": datetime.strptime(fecha_desembolso, "%Y-%m-%d").date() if fecha_desembolso else None,
+            "pknivelaprobacion": pknivelaprobacion,
+            "desmotivosolicitud": desmotivosolicitud,
         },
     ).mappings().first()
     conn.commit()

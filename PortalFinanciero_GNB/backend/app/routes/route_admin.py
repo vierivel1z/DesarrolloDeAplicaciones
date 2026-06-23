@@ -12,6 +12,7 @@ from app.schemas.sch_creditos import SolicitudCreditoRequest
 from app.schemas.sch_admin import ClienteCrearRequest
 from app.repositories import repo_creditos
 from app.core.cfg_security import decodificar_token
+from app.controllers import ctrl_ahorros_eod
 
 bearer_scheme = HTTPBearer(auto_error=True)
 
@@ -104,6 +105,12 @@ def evaluar_solicitud(id: int, conn: Connection = Depends(get_db)):
 def desembolsar_solicitud(id: int, conn: Connection = Depends(get_db)):
     """Crea la cuenta de crédito, el cronograma oficial y abona el saldo a la cuenta de ahorros."""
     return repo_creditos.desembolsar_solicitud(conn, id)
+
+
+@router.post("/eod/ahorros", summary="Ejecutar Cron Job EOD de Cuentas de Ahorro")
+def simular_eod_ahorros(conn: Connection = Depends(get_db)):
+    """Simula el proceso Batch nocturno para cálculo y abono de intereses de ahorro."""
+    return ctrl_ahorros_eod.procesar_eod_ahorros(conn)
 
 
 # ─── Endpoints Power BI (formato plano JSON) ──────────────────────────────────

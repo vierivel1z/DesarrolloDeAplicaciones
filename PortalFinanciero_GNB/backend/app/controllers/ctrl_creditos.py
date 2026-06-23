@@ -1,4 +1,6 @@
 """Controlador de créditos: solicitar crédito (ME/CO)."""
+import json
+import math
 from decimal import Decimal
 
 from fastapi import HTTPException, status
@@ -15,6 +17,10 @@ def solicitar(
     codtipocredito: str,
     codactividadeconomica: str,
     montoingresoneto: Decimal,
+    con_seguro: bool = True,
+    tipo_desgravamen: str = "estandar",
+    fecha_desembolso: str | None = None,
+    dia_pago: int | None = None,
 ) -> dict:
     if codtipocredito not in repo_creditos.MAPA_TIPO_CREDITO:
         raise HTTPException(
@@ -22,6 +28,64 @@ def solicitar(
             detail="Tipo de crédito fuera de alcance (solo ME o CO)",
         )
     try:
+        # 1. Definir TEA Base según producto
+        tea_base = Decimal('43.92') # Default fallback
+        es_convenio = False
+        if codtipocredito == "FACIL":
+            tea_base = Decimal('8.99')
+        elif codtipocredito == "LIBRE":
+            tea_base = Decimal('10.50')
+        elif codtipocredito == "ESTANDAR":
+            tea_base = Decimal('13.00')
+        elif codtipocredito == "CONVENIO":
+            tea_base = Decimal('15.00')
+            es_convenio = True
+        elif codtipocredito == "YAPE":
+            tea_base = Decimal('29.00')
+            
+        # 2. Calcular P(Default) log-odds (Mock betas) para Scoring
+        b0, b_monto, b_ingreso, b_plazo = -2.5, 0.00005, -0.0001, 0.02
+        z = b0 + (float(montosolicitud) * b_monto) + (float(montoingresoneto) * b_ingreso) + (plazo * b_plazo)
+        try:
+            p_default = 1 / (1 + math.exp(-z))
+        except OverflowError:
+            p_default = 0.0 if z < 0 else 1.0
+            
+        p_porcentaje = round(p_default * 100, 2)
+        
+        # 3. Castigo de TEA basado en Scoring (si P_default es alto, se sube la TEA)
+        penalidad_riesgo = Decimal('0.00')
+        if p_porcentaje > 15.0:
+            penalidad_riesgo = Decimal('15.00')
+        elif p_porcentaje > 5.0:
+            penalidad_riesgo = Decimal('5.00')
+            
+        tea_final = tea_base + penalidad_riesgo
+        if not con_seguro:
+            tea_final += Decimal('3.00') # Si no lleva seguro tranki, se asume un aumento base por riesgo puro. (Aunque GNB exige desgravamen, esto es por si lo destilda).
+            
+        # 4. Simular para obtener cuota total con TEA Dinámica y el método francés
+        sim = simular_credito(montosolicitud, tea_final, plazo, tipo_desgravamen=tipo_desgravamen, seguro_vida_tranki=con_seguro, es_convenio=es_convenio)
+        
+        # 5. Calcular RDS
+        rds = (sim["cuota_total"] / montoingresoneto) * 100 if montoingresoneto > 0 else Decimal('100.0')
+        
+        semaforo = "Verde"
+        if rds > 40:
+            semaforo = "Rojo"
+        elif rds > 30:
+            semaforo = "Amarillo"
+            
+        evaluacion_dict = {
+            "tea_asignada": round(float(tea_final), 2),
+            "score_pd_porcentaje": p_porcentaje,
+            "rds_porcentaje": round(float(rds), 2),
+            "semaforo_rds": semaforo,
+            "aprobado_scoring": p_porcentaje < 15.0
+        }
+        
+        pknivelaprobacion = repo_creditos._pk_nivel_aprobacion(conn, montosolicitud)
+        
         res = repo_creditos.crear_solicitud(
             conn,
             pkcliente=pkcliente,
@@ -30,6 +94,12 @@ def solicitar(
             codtipocredito=codtipocredito,
             codactividadeconomica=codactividadeconomica,
             montoingresoneto=montoingresoneto,
+            con_seguro=con_seguro,
+            fecha_desembolso=fecha_desembolso,
+            dia_pago=dia_pago,
+            pknivelaprobacion=pknivelaprobacion,
+            desmotivosolicitud=json.dumps(evaluacion_dict),
+            tea_calculada=tea_final / 100
         )
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
@@ -39,6 +109,7 @@ def solicitar(
         "estado": "En Evaluación",
         "montosolicitud": montosolicitud,
         "plazo": plazo,
+        "evaluacion": evaluacion_dict,
         **res,
     }
 

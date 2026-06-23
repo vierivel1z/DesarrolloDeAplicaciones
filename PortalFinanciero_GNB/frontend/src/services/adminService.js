@@ -46,6 +46,11 @@ export async function adminCrearCliente(payload) {
   return data
 }
 
+export async function adminEjecutarEodAhorros() {
+  const { data } = await hbApi.post('/admin/eod/ahorros')
+  return data
+}
+
 // ── Power BI flat exports ────────────────────────────────────────────────────
 
 export async function getPbClientes() {
