@@ -53,13 +53,49 @@ export default function TransferenciaPage() {
     reset(); setPaso('form'); setMonto('')
   }
 
+  const renderStepper = (currentStep) => {
+    const isPaso1 = currentStep === 'form'
+    const isPaso2 = currentStep === 'confirm'
+    const isPaso3 = currentStep === 'result'
+
+    return (
+      <div className="bn-stepper">
+        <div className="bn-stepper-line" />
+        <div 
+          className="bn-stepper-line-fill" 
+          style={{ width: isPaso1 ? '0%' : isPaso2 ? '50%' : '100%' }} 
+        />
+        
+        <div className={`bn-step ${isPaso1 ? 'active' : (isPaso2 || isPaso3 ? 'completed' : '')}`}>
+          <div className="bn-step-circle">1</div>
+          <span className="bn-step-label">Datos de Transferencia</span>
+        </div>
+        
+        <div className={`bn-step ${isPaso2 ? 'active' : (isPaso3 ? 'completed' : '')}`}>
+          <div className="bn-step-circle">2</div>
+          <span className="bn-step-label">Confirmación</span>
+        </div>
+        
+        <div className={`bn-step ${isPaso3 ? 'active' : ''}`}>
+          <div className="bn-step-circle">3</div>
+          <span className="bn-step-label">Constancia Digital</span>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <PageLayout>
-      <button className="hb-back" onClick={() => navigate('/operaciones')}>
-        <ArrowLeft size={16} /> Volver a Operaciones
-      </button>
-      <h1 className="bbva-page-title">Transferencias entre cuentas propias</h1>
-      <p className="bbva-page-sub">Operaciones › Transferencias propias</p>
+    <PageLayout
+      title="Transferencias entre cuentas propias"
+      subtitle="Operaciones › Transferencias"
+      actions={
+        <button className="bbva-btn-ghost sm" onClick={() => navigate('/operaciones')}>
+          <ArrowLeft size={14} /> Volver a Operaciones
+        </button>
+      }
+    >
+      {/* Indicador de pasos arriba */}
+      {renderStepper(result ? 'result' : paso)}
 
       {result ? (
         <Comprobante
@@ -78,7 +114,7 @@ export default function TransferenciaPage() {
           ]}
         />
       ) : (
-        <Card title="Datos de la transferencia" icon={<Send size={18} />}>
+        <Card title="Datos de la transferencia" icon={<Send size={18} style={{ color: '#C31A1F' }} />}>
           {loading ? (
             <Loader text="Cargando sus cuentas…" />
           ) : cuentas.length < 2 ? (
@@ -104,7 +140,7 @@ export default function TransferenciaPage() {
               {validacion && <Alert tipo="warn">{validacion}</Alert>}
               <div className="hb-grid-2">
                 <div className="hb-field">
-                  <label htmlFor="origen">Cuenta de origen</label>
+                  <label htmlFor="origen" className="hb-field-label">Cuenta de origen</label>
                   <select id="origen" className="hb-select" value={origen}
                     onChange={(e) => { setOrigen(e.target.value); if (e.target.value === destino) setDestino('') }}>
                     <option value="">— Seleccione —</option>
@@ -116,7 +152,7 @@ export default function TransferenciaPage() {
                   </select>
                 </div>
                 <div className="hb-field">
-                  <label htmlFor="destino">Cuenta de destino</label>
+                  <label htmlFor="destino" className="hb-field-label">Cuenta de destino</label>
                   <select id="destino" className="hb-select" value={destino}
                     onChange={(e) => setDestino(e.target.value)} disabled={!origen}>
                     <option value="">— Seleccione —</option>
@@ -130,20 +166,22 @@ export default function TransferenciaPage() {
               </div>
 
               {cuentaOrigen && (
-                <p className="bbva-saldo-hint">
+                <p className="bbva-saldo-hint" style={{ marginTop: '10px' }}>
                   Saldo disponible en origen: <Money value={cuentaOrigen.saldo} simbolo={simbolo} />
                 </p>
               )}
 
-              <div className="hb-field">
-                <label htmlFor="monto">Monto a transferir ({simbolo})</label>
+              <div className="hb-field" style={{ marginTop: '16px' }}>
+                <label htmlFor="monto" className="hb-field-label">Monto a transferir ({simbolo})</label>
                 <input id="monto" className="hb-input" type="number" min="0.01" step="0.01"
                   placeholder="0.00" value={monto} onChange={(e) => setMonto(e.target.value)} />
               </div>
 
-              <button type="submit" className="bbva-btn">
-                Continuar <ArrowRight size={18} />
-              </button>
+              <div style={{ marginTop: '24px' }}>
+                <button type="submit" className="bbva-btn">
+                  Continuar <ArrowRight size={18} />
+                </button>
+              </div>
             </form>
           )}
         </Card>

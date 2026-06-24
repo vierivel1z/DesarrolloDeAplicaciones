@@ -47,7 +47,7 @@ export default function AdminClientesPage() {
     <PageLayout>
       <div className="bbva-hello">
         <h1>Gestión de Clientes</h1>
-        <p>Directorio completo de clientes del Banco GNB con sus productos asociados.</p>
+        <p>Directorio completo de clientes del Banco de la Nación con sus productos asociados.</p>
       </div>
 
       {/* KPIs de resumen */}

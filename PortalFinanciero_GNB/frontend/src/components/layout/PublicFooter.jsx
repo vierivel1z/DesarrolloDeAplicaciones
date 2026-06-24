@@ -1,113 +1,154 @@
 import React from 'react'
-import { Phone, Clock, MapPin, ExternalLink } from 'lucide-react'
+import { Phone, Clock, MapPin, ExternalLink, BookOpen } from 'lucide-react'
 
 export default function PublicFooter() {
-  const customerServiceLinks = [
-    { label: 'Información sobre Reclamos y Requerimientos', href: '#' },
-    { label: 'Formulario para ingreso de reclamo', href: '#' },
-    { label: 'Atención 24 hrs. - Bloqueos Tarjeta Crédito o Débito', href: '#' },
-    { label: 'Conducta de Mercado', href: '#' },
-    { label: 'Atención Preferencial', href: '#' },
-    { label: 'Prevención de Lavado de Activos', href: '#' },
-    { label: 'Canal Anticorrupción', href: '#' },
-    { label: 'Transparencia Fiscal', href: '#' },
-    { label: 'Portal de Orientación y Servicios al Ciudadano (SBS)', href: '#' },
-    { label: 'Formulario para ingreso de consultas y/o sugerencias', href: '#' },
-    { label: 'Avisos importantes', href: '#' },
-    { label: 'Servicios Notariales', href: '#' },
-    { label: 'Atención 24 x 7', href: '#' }
+  const nosotrosLinks = [
+    { label: '¿Quiénes somos?', href: '#' },
+    { label: '60 Años BN', href: '#' },
+    { label: 'Directorio de Funcionarios', href: '#' },
+    { label: 'Integridad BN', href: '#' },
+    { label: 'Buen Gobierno corporativo', href: '#' },
+    { label: 'Memoria Anual', href: '#' },
+    { label: 'Inclusión Financiera', href: '#' }
+  ]
+
+  const informacionInteresLinks = [
+    { label: 'Cronograma de pagos', href: '#' },
+    { label: 'Tasas y Comisiones', href: '#' },
+    { label: 'Ver tu Código Interbancario', href: '#' },
+    { label: 'Tipo de Cambio', href: '#' },
+    { label: 'Facturación Electrónica', href: '#' },
+    { label: 'Fideicomisos', href: '#' },
+    { label: 'Enlaces de interés', href: '#' }
   ]
 
   return (
-    <footer className="gnb-public-footer" id="footer">
-      <div className="gnb-footer-container">
+    <footer className="gnb-public-footer" style={{ background: '#f3f4f6', borderTop: '1px solid #e5e7eb', fontFamily: '"Outfit", sans-serif', width: '100%', color: '#4b5563' }}>
+      
+      {/* 1. Sección de Columnas */}
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 20px', display: 'flex', flexWrap: 'wrap', gap: '32px', justifyContent: 'space-between' }}>
         
-        {/* Columna Izquierda: Horarios */}
-        <div className="gnb-footer-col-horarios">
-          <h4 className="gnb-footer-heading">Horario de Atención</h4>
-          
-          <div className="gnb-horario-block">
-            <span className="gnb-horario-sub">Banca por Teléfono</span>
-            <div className="gnb-horario-item">
-              <Phone size={14} className="gnb-horario-icon" />
-              <span>Lima: <strong>(01) 616 - 4722</strong></span>
-            </div>
-            <div className="gnb-horario-item">
-              <Phone size={14} className="gnb-horario-icon" />
-              <span>Provincia: <strong>0801 - 00088</strong></span>
-            </div>
-            <div className="gnb-horario-item">
-              <Clock size={14} className="gnb-horario-icon" />
-              <span>Lun. a Vie. 9:00 a.m. a 6:30 p.m. / Sáb. 9:00 a.m. a 1:00 p.m.</span>
-            </div>
-          </div>
-
-          <div className="gnb-horario-block">
-            <span className="gnb-horario-sub">Red de Agencias</span>
-            <div className="gnb-horario-item">
-              <MapPin size={14} className="gnb-horario-icon" />
-              <span>Lun. a Vie. 9:00 a.m. a 6:00 p.m. / Sáb. 9:00 a.m. a 12:00 p.m.</span>
-            </div>
-            <div className="gnb-horario-item">
-              <MapPin size={14} className="gnb-horario-icon" />
-              <span>Av. República de Panamá 3055, San Isidro, Lima - Perú</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Columna Centro: Servicio al Cliente */}
-        <div className="gnb-footer-col-servicio">
-          <h4 className="gnb-footer-heading">Servicio al Cliente</h4>
-          <ul className="gnb-footer-list">
-            {customerServiceLinks.map((link, idx) => (
-              <li key={idx} className="gnb-footer-list-item">
-                <a href={link.href} className="gnb-footer-link">
+        {/* Col 1: Nosotros */}
+        <div style={{ flex: '1 1 200px' }}>
+          <h4 style={{ fontSize: '15px', fontWeight: '700', color: '#1f2937', marginBottom: '16px' }}>Nosotros</h4>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {nosotrosLinks.map((link, idx) => (
+              <li key={idx} style={{ fontSize: '13px' }}>
+                <a href={link.href} style={{ color: '#4b5563', textDecoration: 'none' }} onMouseEnter={(e) => e.target.style.color = '#C31A1F'} onMouseLeave={(e) => e.target.style.color = '#4b5563'}>
                   {link.label}
-                  {link.label.includes('SBS') && <ExternalLink size={10} style={{ marginLeft: 4, display: 'inline' }} />}
                 </a>
               </li>
             ))}
           </ul>
         </div>
 
-        {/* Columna Derecha: Libro de Reclamaciones / Sitemap */}
-        <div className="gnb-footer-col-reclamaciones">
-          {/* Libro de Reclamaciones Badge */}
-          <div className="gnb-libro-badge">
-            <a href="#" className="gnb-libro-link">
-              <div className="gnb-libro-box">
-                <span className="gnb-libro-title">LIBRO DE RECLAMACIONES</span>
-                <div className="gnb-libro-icon-row">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z" />
-                    <path d="M6 6h10M6 10h10M6 14h10" />
-                  </svg>
-                  <span className="gnb-libro-sub">Conforme al Código de Protección al Consumidor</span>
-                </div>
+        {/* Col 2: Información de Interés */}
+        <div style={{ flex: '1 1 200px' }}>
+          <h4 style={{ fontSize: '15px', fontWeight: '700', color: '#1f2937', marginBottom: '16px' }}>Información de interés</h4>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {informacionInteresLinks.map((link, idx) => (
+              <li key={idx} style={{ fontSize: '13px' }}>
+                <a href={link.href} style={{ color: '#4b5563', textDecoration: 'none' }} onMouseEnter={(e) => e.target.style.color = '#C31A1F'} onMouseLeave={(e) => e.target.style.color = '#4b5563'}>
+                  {link.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Col 3: Canales y Contáctanos */}
+        <div style={{ flex: '1 1 200px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div>
+            <h4 style={{ fontSize: '15px', fontWeight: '700', color: '#1f2937', marginBottom: '12px' }}>Canales presenciales</h4>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <li style={{ fontSize: '13px' }}><a href="#" style={{ color: '#4b5563', textDecoration: 'none' }}>Agentes</a></li>
+              <li style={{ fontSize: '13px' }}><a href="#" style={{ color: '#4b5563', textDecoration: 'none' }}>Cajeros</a></li>
+              <li style={{ fontSize: '13px' }}><a href="#" style={{ color: '#4b5563', textDecoration: 'none' }}>Agencias</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 style={{ fontSize: '15px', fontWeight: '700', color: '#1f2937', marginBottom: '12px' }}>Contáctanos</h4>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <li style={{ fontSize: '13px' }}><a href="#" style={{ color: '#4b5563', textDecoration: 'none' }}>Atención al Cliente</a></li>
+              <li style={{ fontSize: '13px' }}><a href="#" style={{ color: '#4b5563', textDecoration: 'none' }}>Mesa de partes digital</a></li>
+            </ul>
+          </div>
+        </div>
+
+        {/* Col 4: Servicio al Cliente */}
+        <div style={{ flex: '1 1 250px' }}>
+          <h4 style={{ fontSize: '15px', fontWeight: '700', color: '#1f2937', marginBottom: '16px' }}>Servicio al Cliente</h4>
+          <p style={{ fontSize: '13px', lineHeight: '1.4', marginBottom: '12px' }}>
+            Consultas, uso en el extranjero y bloqueo de tarjetas las 24 horas.
+          </p>
+          <div style={{ fontSize: '13px', marginBottom: '6px' }}>
+            Línea gratuita: <strong style={{ color: '#1f2937' }}>0800-10700</strong>
+          </div>
+          <div style={{ fontSize: '13px', lineHeight: '1.4', marginBottom: '16px' }}>
+            Teléfonos: <strong style={{ color: '#1f2937' }}>01-440-5305 / 01-442-4470 / 1820</strong>
+          </div>
+          
+          {/* Libro de Reclamaciones */}
+          <div style={{ display: 'inline-block' }}>
+            <a href="#" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', textDecoration: 'none', color: '#1f2937', fontWeight: '600', fontSize: '12.5px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+              <BookOpen size={18} style={{ color: '#C31A1F' }} />
+              <div>
+                <div style={{ fontSize: '11px', fontWeight: '800', color: '#C31A1F' }}>LIBRO DE RECLAMACIONES</div>
+                <div style={{ fontSize: '8px', color: '#71717a' }}>Conforme al Código de Protección al Consumidor</div>
               </div>
             </a>
           </div>
+        </div>
 
-          <div className="gnb-footer-sitemap">
-            <a href="#">Mapa del Sitio</a>
-            <a href="#">Términos de Uso</a>
-            <a href="#">Privacidad</a>
+      </div>
+
+      {/* Franja Roja BN */}
+      <div className="gnb-footer-green-bar" style={{ height: '4px', background: '#C31A1F' }} />
+
+      {/* 2. Sección Negra de Oficinas y Transparencia */}
+      <div style={{ background: '#374151', color: '#d1d5db', padding: '30px 20px', fontSize: '12px', lineHeight: '1.6' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: '24px' }}>
+          
+          {/* Datos Dirección */}
+          <div style={{ flex: '1 1 60%' }}>
+            <div style={{ fontWeight: '700', color: '#ffffff', marginBottom: '8px' }}>
+              Banco de la Nación | Sector Economía y Finanzas | Perú
+            </div>
+            <div>
+              <strong>Oficina principal:</strong> Av. Javier Prado Este 2499, San Borja
+            </div>
+            <div>
+              <strong>Atención en oficina principal:</strong> lunes a viernes de 8:30 a 17:30, refrigerio de 13:00 a 14:00
+            </div>
+            <div>
+              <strong>Mesa de partes presencial:</strong> Av. De la Arqueología 130, San Borja, atención: lunes a viernes de 8:30 a 16:30
+            </div>
+            <div>
+              <strong>Central telefónica administrativa:</strong> 01 519 2000
+            </div>
           </div>
+
+          {/* Transparencia */}
+          <div style={{ flex: '1 1 30%', textAlign: 'right' }}>
+            <div style={{ fontWeight: '700', color: '#ffffff', marginBottom: '4px' }}>
+              Funcionarios responsables del:
+            </div>
+            <div>
+              Portal de Transparencia y Entrega de Información
+            </div>
+            <div style={{ marginTop: '8px', color: '#9ca3af', fontSize: '11px' }}>
+              Última actualización: 23 de junio del 2026
+            </div>
+          </div>
+
         </div>
 
-      </div>
-
-      {/* Franja Verde Superior del Sub-Footer */}
-      <div className="gnb-footer-green-bar" />
-
-      {/* Sub-Footer: Derechos Reservados */}
-      <div className="gnb-footer-bottom">
-        <div className="gnb-footer-container gnb-bottom-row">
-          <span>Banco GNB Perú S.A. - RUC 20513074370</span>
-          <span>Todos los derechos reservados © 2026 Banco GNB Sudameris S.A.</span>
-          <span>Agencia Digital: Zav Group.</span>
+        {/* Derechos Reservados Centrados */}
+        <div style={{ textAlign: 'center', borderTop: '1px solid #4b5563', marginTop: '20px', paddingTop: '16px', color: '#9ca3af', fontSize: '11.5px' }}>
+          © BN | Todos los derechos reservados, Banco de la Nación - RUC 20100030595
         </div>
       </div>
+
     </footer>
   )
 }

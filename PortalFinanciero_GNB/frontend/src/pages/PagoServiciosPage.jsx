@@ -64,17 +64,52 @@ export default function PagoServiciosPage() {
 
   const nuevo = () => { reset(); setPaso('form'); setCodservicio(''); setCodsuministro(''); setMonto('') }
 
+  const renderStepper = (currentStep) => {
+    const isPaso1 = currentStep === 'form'
+    const isPaso2 = currentStep === 'confirm'
+    const isPaso3 = currentStep === 'result'
+
+    return (
+      <div className="bn-stepper">
+        <div className="bn-stepper-line" />
+        <div 
+          className="bn-stepper-line-fill" 
+          style={{ width: isPaso1 ? '0%' : isPaso2 ? '50%' : '100%' }} 
+        />
+        
+        <div className={`bn-step ${isPaso1 ? 'active' : (isPaso2 || isPaso3 ? 'completed' : '')}`}>
+          <div className="bn-step-circle">1</div>
+          <span className="bn-step-label">Datos de Servicio</span>
+        </div>
+        
+        <div className={`bn-step ${isPaso2 ? 'active' : (isPaso3 ? 'completed' : '')}`}>
+          <div className="bn-step-circle">2</div>
+          <span className="bn-step-label">Confirmación</span>
+        </div>
+        
+        <div className={`bn-step ${isPaso3 ? 'active' : ''}`}>
+          <div className="bn-step-circle">3</div>
+          <span className="bn-step-label">Constancia Digital</span>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <PageLayout>
-      <button className="hb-back" onClick={() => navigate('/operaciones')}>
-        <ArrowLeft size={16} /> Volver a Operaciones
-      </button>
-      <h1 className="bbva-page-title">Pago de servicios</h1>
-      <p className="bbva-page-sub">Operaciones › Pago de servicios</p>
+    <PageLayout
+      title="Pago de servicios"
+      subtitle="Operaciones › Pago de servicios"
+      actions={
+        <button className="bbva-btn-ghost sm" onClick={() => navigate('/operaciones')}>
+          <ArrowLeft size={14} /> Volver a Operaciones
+        </button>
+      }
+    >
+      {renderStepper(result ? 'result' : paso)}
 
       {result ? (
         <Comprobante
-          titulo="Pago de servicio realizado"
+          titulo="Pago de servicio exitoso"
           mensaje={result.mensaje}
           filas={[
             { label: 'Servicio', value: result.servicio },
@@ -90,7 +125,7 @@ export default function PagoServiciosPage() {
           ]}
         />
       ) : (
-        <Card title="Datos del pago" icon={<FileText size={18} />}>
+        <Card title="Datos del pago" icon={<FileText size={18} style={{ color: '#C31A1F' }} />}>
           {lca || ls ? (
             <Loader text="Cargando datos…" />
           ) : paso === 'confirm' ? (
@@ -115,7 +150,7 @@ export default function PagoServiciosPage() {
               {errServ && <Alert tipo="error">{errServ}</Alert>}
               {validacion && <Alert tipo="warn">{validacion}</Alert>}
 
-              <label className="hb-field-label">Empresa / servicio</label>
+              <label className="hb-field-label" style={{ marginBottom: '8px', display: 'block' }}>Empresa / servicio</label>
               <div className="bbva-serv-grid">
                 {servicios.map((s) => {
                   const meta = ICONOS[s.codservicio] || { icon: FileText, color: '#6b6b7b' }
@@ -131,21 +166,21 @@ export default function PagoServiciosPage() {
                 })}
               </div>
 
-              <div className="hb-grid-2" style={{ marginTop: 16 }}>
+              <div className="hb-grid-2" style={{ marginTop: 24 }}>
                 <div className="hb-field">
-                  <label htmlFor="suministro">N° de suministro / recibo</label>
+                  <label htmlFor="suministro" className="hb-field-label">N° de suministro / recibo</label>
                   <input id="suministro" className="hb-input" placeholder="Ej. 1234567890"
                     value={codsuministro} onChange={(e) => setCodsuministro(e.target.value)} />
                 </div>
                 <div className="hb-field">
-                  <label htmlFor="monto">Monto a pagar (S/)</label>
+                  <label htmlFor="monto" className="hb-field-label">Monto a pagar (S/)</label>
                   <input id="monto" className="hb-input" type="number" min="0.01" step="0.01"
                     placeholder="0.00" value={monto} onChange={(e) => setMonto(e.target.value)} />
                 </div>
               </div>
 
-              <div className="hb-field">
-                <label htmlFor="origen">Cuenta de ahorro origen</label>
+              <div className="hb-field" style={{ marginTop: 16 }}>
+                <label htmlFor="origen" className="hb-field-label">Cuenta de ahorro origen</label>
                 <select id="origen" className="hb-select" value={origen} onChange={(e) => setOrigen(e.target.value)}>
                   <option value="">— Seleccione una cuenta —</option>
                   {cuentas.map((c) => (
@@ -156,15 +191,17 @@ export default function PagoServiciosPage() {
                 </select>
               </div>
               {cuentaOrigen && (
-                <p className="bbva-saldo-hint">
+                <p className="bbva-saldo-hint" style={{ marginTop: '10px' }}>
                   Saldo disponible: <Money value={cuentaOrigen.saldo} simbolo={simbolo} />
                   {saldoInsuficiente && <span style={{ color: 'var(--hb-red)', fontWeight: 600 }}> · saldo insuficiente</span>}
                 </p>
               )}
 
-              <button type="submit" className="bbva-btn" disabled={cuentas.length === 0 || saldoInsuficiente}>
-                Continuar <ArrowRight size={18} />
-              </button>
+              <div style={{ marginTop: 24 }}>
+                <button type="submit" className="bbva-btn" disabled={cuentas.length === 0 || saldoInsuficiente}>
+                  Continuar <ArrowRight size={18} />
+                </button>
+              </div>
             </form>
           )}
         </Card>

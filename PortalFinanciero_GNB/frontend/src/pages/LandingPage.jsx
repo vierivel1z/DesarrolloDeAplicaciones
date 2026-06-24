@@ -1,445 +1,332 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  CreditCard, Wallet, PiggyBank, Send, Smartphone, ShieldCheck,
-  TrendingUp, Clock, MapPin, ArrowRight, Lock, BadgePercent, Briefcase,
-  ChevronLeft, ChevronRight
+  ChevronLeft, ChevronRight, PiggyBank, Home, CreditCard,
+  ShieldCheck, Shield, HeartPulse
 } from 'lucide-react'
 import PublicHeader from '../components/layout/PublicHeader.jsx'
 import PublicFooter from '../components/layout/PublicFooter.jsx'
 
-const SLIDES = [
-  {
-    tag: 'Ahorro Digital',
-    title: 'Cuenta de Ahorros Rolando',
-    desc: 'La cuenta de ahorros que te deposita intereses reales todos los días de manera simple.',
-    badgeTitle: 'TREA de Ahorro',
-    badgeValue: '4.50% Soles',
-    ctaText: 'Más información',
-    bgImage: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&q=80&w=1200',
-  },
-  {
-    tag: 'Financiamiento',
-    title: 'Solicita tu Préstamo Personal',
-    desc: 'Dinero al instante con aprobación 100% en línea y plazos a tu medida sin colas.',
-    badgeTitle: 'TCEA Preferencial',
-    badgeValue: 'Desde 12.5%',
-    ctaText: 'Solicitar ahora',
-    bgImage: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&q=80&w=1200',
-  },
-  {
-    tag: 'Inversión Segura',
-    title: 'Crece seguro con Plazo Fijo',
-    desc: 'La mejor rentabilidad garantizada del mercado para hacer crecer tus ahorros con tranquilidad.',
-    badgeTitle: 'Tasa Efectiva Anual',
-    badgeValue: 'Hasta 6.25%',
-    ctaText: 'Simular depósito',
-    bgImage: 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?auto=format&fit=crop&q=80&w=1200',
-  },
-  {
-    tag: 'Exclusividad GNB',
-    title: 'Nueva Tarjeta de Crédito Platinum',
-    desc: 'Acumula puntos en todas tus compras y viaja cómodo con accesos a salas VIP de aeropuertos.',
-    badgeTitle: 'Membresía Anual',
-    badgeValue: 'Cero Costo',
-    ctaText: 'Pedir tarjeta',
-    bgImage: 'https://images.unsplash.com/photo-1589758438368-0ad531db3366?auto=format&fit=crop&q=80&w=1200',
-  },
-  {
-    tag: 'Banca Personas',
-    title: 'Traslada tu Cuenta Sueldo a GNB',
-    desc: 'Recibe adelantos de sueldo sin cargos adicionales y realiza retiros interbancarios totalmente gratis.',
-    badgeTitle: 'Beneficio Exclusivo',
-    badgeValue: 'Cero Comisiones',
-    ctaText: 'Cambiarme hoy',
-    bgImage: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&q=80&w=1200',
-  },
-  {
-    tag: 'Movilidad',
-    title: 'Llévate el Auto de tus Sueños',
-    desc: 'Financiamos hasta el 100% de tu vehículo nuevo con las cuotas más bajas y flexibles del mercado.',
-    badgeTitle: 'Aprobación Rápida',
-    badgeValue: 'En menos de 24h',
-    ctaText: 'Cotizar auto',
-    bgImage: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=1200',
-  },
-  {
-    tag: 'Banca Digital',
-    title: 'Lleva tu banco en tu celular',
-    desc: 'Descarga nuestra nueva app Banca Móvil GNB y realiza tus operaciones de forma rápida y segura.',
-    badgeTitle: 'App Móvil GNB',
-    badgeValue: '100% Gratis',
-    ctaText: 'Ver beneficios',
-    bgImage: 'https://images.unsplash.com/photo-1563013544-824ae1d704d3?auto=format&fit=crop&q=80&w=1200',
-  },
-  {
-    tag: 'Protección',
-    title: 'Protege a quienes más amas hoy',
-    desc: 'Asegura la tranquilidad de tu familia con las coberturas más completas de seguros de vida.',
-    badgeTitle: 'Costo de Seguro',
-    badgeValue: 'Desde S/ 1.00 diario',
-    ctaText: 'Conocer planes',
-    bgImage: 'https://images.unsplash.com/photo-1509099836639-18ba1795216d?auto=format&fit=crop&q=80&w=1200',
-  }
-]
-
-const PRODUCTOS = [
-  { icon: PiggyBank, color: '#e2132b', titulo: 'Cuenta de Ahorros', desc: 'Maneja tu dinero sin costo de mantenimiento y gana intereses todos los días.' },
-  { icon: Wallet, color: '#00a9a5', titulo: 'Cuenta Sueldo', desc: 'Recibe tu sueldo, retira sin comisiones y accede a beneficios exclusivos.' },
-  { icon: BadgePercent, color: '#8e24aa', titulo: 'Crédito de Consumo', desc: 'El efectivo que necesitas con tasas preferenciales y cuotas a tu medida.' },
-  { icon: Briefcase, color: '#f7941e', titulo: 'Crédito Microempresa', desc: 'Impulsa tu negocio con financiamiento ágil pensado para emprendedores.' },
-  { icon: Send, color: '#4caf50', titulo: 'Transferencias', desc: 'Mueve tu dinero entre tus cuentas al instante, las 24 horas del día.' },
-  { icon: CreditCard, color: '#e6398b', titulo: 'Tarjeta de Débito', desc: 'Paga y compra en todo el país, en tiendas y por internet, con total seguridad.' },
-]
-
-const BENEFICIOS = [
-  { icon: Smartphone, titulo: '100% Digital', desc: 'Abre productos y opera desde tu celular, sin ir a una agencia.' },
-  { icon: ShieldCheck, titulo: 'Seguro y protegido', desc: 'Tus operaciones viajan cifradas y bajo supervisión de la SBS.' },
-  { icon: Clock, titulo: 'Disponible 24/7', desc: 'Consulta saldos, paga cuotas y transfiere a cualquier hora.' },
-  { icon: MapPin, titulo: 'Cobertura nacional', desc: 'Presencia en todo el país, brindándote solidez y confianza.' },
-]
-
 export default function LandingPage() {
   const navigate = useNavigate()
   const [currentSlide, setCurrentSlide] = useState(0)
-  const [promoSlide, setPromoSlide] = useState(0)
-  const [currentSecSlide, setCurrentSecSlide] = useState(0)
+
+  // Slides del Carrusel Principal (basado en el Préstamo Multired y campañas reales)
+  const SLIDES = [
+    {
+      title: "Impulsa tus planes con el Préstamo Multired",
+      desc: "Tu opción para dar el siguiente paso",
+      ctaText: "Conoce más",
+      bgImage: "https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?auto=format&fit=crop&q=80&w=600"
+    },
+    {
+      title: "Tarjeta de Crédito BN para tu día a día",
+      desc: "Conócela y acompaña tus compras",
+      ctaText: "Conoce más",
+      bgImage: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&q=80&w=600"
+    },
+    {
+      title: "¿Eres usuario Android? Actualiza tu dispositivo",
+      desc: "Desde el 26 de junio de 2026, la App BN solo será compatible con versiones Android 10 o superior.",
+      ctaText: "Más información",
+      bgImage: "https://images.unsplash.com/photo-1546054454-aa26e2b734c7?auto=format&fit=crop&q=80&w=600"
+    },
+    {
+      title: "Más coberturas y mejores beneficios en cada uno de nuestros seguros",
+      desc: "¡Prevén hoy y asegura tu tranquilidad!",
+      ctaText: "¿Quieres saber más?",
+      bgImage: "https://images.unsplash.com/photo-1509099836639-18ba1795216d?auto=format&fit=crop&q=80&w=600"
+    }
+  ]
+
+  // 6 Productos Principales
+  const PRODUCTOS = [
+    { label: "Préstamo BN", icon: PiggyBank },
+    { label: "Crédito Hipotecario", icon: Home },
+    { label: "Tarjeta de crédito", icon: CreditCard },
+    { label: "Seguro para tarjetas", icon: ShieldCheck },
+    { label: "Seguro cuota protegida", icon: Shield },
+    { label: "Seguro Oncológico", icon: HeartPulse }
+  ]
+
+  // Noticias
+  const NOTICIAS = [
+    {
+      date: "23 de junio del 2026",
+      title: "Banco de la Nación busca cubrir 23 plazas para su oficina principal",
+      image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=400"
+    },
+    {
+      date: "23 de junio del 2026",
+      title: "Comunicado: Feriado con motivo la celebración del Inti Raymi y el Dia del Cusco",
+      image: "https://images.unsplash.com/photo-1580618672591-eb180b1a973f?auto=format&fit=crop&q=80&w=400"
+    },
+    {
+      date: "23 de junio del 2026",
+      title: "Comunicado: Día no laborable compensable el 24 de junio 'Día de San Juan' y el Dia del Campesino en Huánuco...",
+      image: "https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&q=80&w=400"
+    }
+  ]
 
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % SLIDES.length)
-    }, 5000)
-    return () => clearInterval(timer)
-  }, [])
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setPromoSlide((prev) => (prev === 0 ? 1 : 0))
     }, 6000)
     return () => clearInterval(timer)
   }, [])
 
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % SLIDES.length)
-  }
-
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + SLIDES.length) % SLIDES.length)
-  }
-
-  const nextSecSlide = () => {
-    setCurrentSecSlide((prev) => (prev + 1) % securitySlides.length)
-  }
-
-  const prevSecSlide = () => {
-    setCurrentSecSlide((prev) => (prev - 1 + securitySlides.length) % securitySlides.length)
-  }
-
-  const securitySlides = [
-    {
-      title: "NUEVOS LÍMITES DE CANALES DIGITALES",
-      body: "Queremos mantenerte informado sobre nuestras medidas de seguridad. A partir del 27.11.2025 se aplicarán cambios a los límites operativos por Canales digitales (Banca Móvil y Banca por internet) establecidos para Personas Naturales.",
-      buttons: [{ label: "Más información", href: "#" }]
-    },
-    {
-      title: "RECHAZO DE OPERACIONES CON TARJETAS REALIZADAS CON LECTURA DE BANDA MAGNÉTICA",
-      body: "Banco GNB informa que a partir del 25.10.2024, solo serán aceptadas y aprobadas las operaciones presenciales en terminales POS o ATMs, en el Perú o en el extranjero, que se realicen con lectura de Chip o Contactless (sin contacto).",
-      buttons: [
-        { label: "Más información", href: "#" },
-        { label: "Preguntas frecuentes", href: "#" }
-      ]
-    },
-    {
-      title: "BANCO GNB EN EL MERCADO DE CAPITALES PERUANO",
-      body: "Banco GNB participa activamente en el Mercado de Capitales Peruano para brindarte mayor respaldo y rentabilidad.",
-      buttons: [{ label: "Más información", href: "#" }]
-    },
-    {
-      title: "RETIRO DE CTS",
-      body: "Banco GNB pone a su disposición el 100% del importe acumulado en su Cuenta CTS conforme a las normativas legales vigentes.",
-      buttons: [{ label: "Más información", href: "#" }]
-    },
-    {
-      title: "ALTERNATIVAS DE PAGO",
-      body: "Banco GNB brinda facilidades para sus Clientes con dificultades temporales en el pago de sus créditos con diversas reprogramaciones.",
-      buttons: [
-        { label: "Preguntas frecuentes", href: "#" },
-        { label: "Declaración Jurada", href: "#" }
-      ]
-    },
-    {
-      title: "AVISO POR CUENTAS INMOVILIZADAS",
-      body: "En cumplimiento de la Resolución SBS No.0657-99, hacemos de su conocimiento que estos activos serán transferidos al Fondo de Seguro de Depósitos.",
-      buttons: [{ label: "Más información", href: "#" }]
-    },
-    {
-      title: "RECOMENDACIONES DE SEGURIDAD",
-      body: "Te recomendamos algunas prácticas a seguir para mantener tu información de forma segura y confidencial. El banco nunca pedirá tus claves.",
-      buttons: [{ label: "Más información", href: "#" }]
-    }
-  ]
-
   return (
-    <div className="lp-page">
+    <div className="gnb-public-page" style={{ background: '#fcfcfc', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <PublicHeader />
 
-      {/* ===== HERO CAROUSEL (8 ITEMS) ===== */}
-      <section className="gnb-carousel-section">
-        {SLIDES.map((slide, index) => (
+      {/* 1. Carrusel Principal (Hero) */}
+      <section className="bn-hero-section" style={{ position: 'relative', width: '100%', height: '420px', overflow: 'hidden', background: '#fff' }}>
+        {SLIDES.map((slide, idx) => (
           <div 
-            key={index} 
-            className={`gnb-carousel-slide ${index === currentSlide ? 'active' : ''}`}
+            key={idx} 
+            style={{ 
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              opacity: idx === currentSlide ? 1 : 0,
+              transition: 'opacity 0.6s ease-in-out',
+              zIndex: idx === currentSlide ? 2 : 1,
+              display: 'flex',
+              flexDirection: 'row',
+              background: 'linear-gradient(110deg, #7c0000 0%, #bf0909 50%, #bf0909 100%)',
+              color: '#fff',
+              pointerEvents: idx === currentSlide ? 'auto' : 'none'
+            }}
           >
-            {/* Background Image */}
-            <img src={slide.bgImage} alt={slide.title} className="gnb-slide-img" />
-            <div className="gnb-slide-bg-overlay" />
-            
-            <div className="gnb-slide-content">
-              <div className="gnb-slide-text">
-                <span className="gnb-slide-tag">{slide.tag}</span>
-                <h1 className="gnb-slide-title">{slide.title}</h1>
-                <p className="gnb-slide-desc">{slide.desc}</p>
-                
-                <div className="gnb-slide-badge-box">
-                  <span className="gnb-slide-badge-title">{slide.badgeTitle}</span>
-                  <span className="gnb-slide-badge-value">{slide.badgeValue}</span>
-                </div>
-                
-                <div>
-                  <button className="gnb-btn-carousel-cta" onClick={() => navigate('/login')}>
-                    {slide.ctaText} <ArrowRight size={18} style={{ marginLeft: 6 }} />
-                  </button>
-                </div>
-              </div>
+            {/* Contenido Izquierdo */}
+            <div style={{ flex: '1 1 50%', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '40px 8%', boxSizing: 'border-box', zIndex: 10 }}>
+              <h1 style={{ fontSize: '32px', fontWeight: '800', marginBottom: '16px', lineHeight: '1.2', color: '#fff' }}>{slide.title}</h1>
+              <p style={{ fontSize: '18px', fontWeight: '400', marginBottom: '28px', opacity: '0.9', color: '#fff' }}>{slide.desc}</p>
+              <button 
+                onClick={() => navigate('/login')}
+                style={{ 
+                  alignSelf: 'flex-start',
+                  background: '#ffffff', 
+                  color: '#bf0909', 
+                  border: 'none', 
+                  fontWeight: '700', 
+                  padding: '10px 24px', 
+                  borderRadius: '999px',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 10px rgba(0,0,0,0.15)',
+                  transition: 'transform 0.2s'
+                }}
+              >
+                {slide.ctaText}
+              </button>
             </div>
+
+            {/* Imagen Derecha Curvada */}
+            <div 
+              style={{ 
+                flex: '1 1 50%', 
+                height: '100%',
+                position: 'relative', 
+                backgroundImage: `url(${slide.bgImage})`, 
+                backgroundSize: 'cover', 
+                backgroundPosition: 'center',
+                borderTopLeftRadius: '420px',
+                zIndex: 5
+              }}
+            />
           </div>
         ))}
 
-        {/* Left/Right navigation arrows */}
+        {/* Flechas del Carrusel */}
         <button 
-          className="gnb-carousel-arrow gnb-carousel-arrow-left" 
-          onClick={prevSlide}
-          aria-label="Anterior"
+          onClick={() => setCurrentSlide((prev) => (prev - 1 + SLIDES.length) % SLIDES.length)}
+          style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.2)', border: 'none', color: '#fff', borderRadius: '50%', width: '36px', height: '36px', display: 'grid', placeItems: 'center', cursor: 'pointer', zIndex: 10 }}
         >
-          <ChevronLeft size={24} />
+          <ChevronLeft size={20} />
         </button>
         <button 
-          className="gnb-carousel-arrow gnb-carousel-arrow-right" 
-          onClick={nextSlide}
-          aria-label="Siguiente"
+          onClick={() => setCurrentSlide((prev) => (prev + 1) % SLIDES.length)}
+          style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.2)', border: 'none', color: '#fff', borderRadius: '50%', width: '36px', height: '36px', display: 'grid', placeItems: 'center', cursor: 'pointer', zIndex: 10 }}
         >
-          <ChevronRight size={24} />
+          <ChevronRight size={20} />
         </button>
 
-        {/* Indicators/dots at bottom */}
-        <div className="gnb-carousel-dots">
+        {/* Indicadores Númericos */}
+        <div style={{ position: 'absolute', bottom: '16px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '10px', alignItems: 'center', zIndex: 10 }}>
           {SLIDES.map((_, index) => (
             <button 
-              key={index} 
-              className={`gnb-carousel-dot ${index === currentSlide ? 'active' : ''}`}
+              key={index}
               onClick={() => setCurrentSlide(index)}
-              aria-label={`Ir al slide ${index + 1}`}
-            />
-          ))}
-        </div>
-      </section>
-
-      {/* 1. Grid de Tarjetas Promocionales (2 Columnas) */}
-      <section className="gnb-promos-grid-section">
-        {/* Columna Izquierda: Slider de 2 promos */}
-        <div className="gnb-promo-card-carousel">
-          <a 
-            href="#" 
-            className={`gnb-promo-slide ${promoSlide === 0 ? 'active' : ''}`}
-            onClick={(e) => { e.preventDefault(); navigate('/login'); }}
-          >
-            <img 
-              src="https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&q=80&w=600" 
-              alt="Red de Agencias" 
-              className="gnb-promo-img" 
-            />
-            <div className="gnb-promo-overlay" />
-            <div className="gnb-promo-info">
-              <h3 className="gnb-promo-title">Nuestra Red de Agencias</h3>
-              <p className="gnb-promo-desc">Conoce nuestras oficinas y horarios de atención a nivel nacional.</p>
-            </div>
-          </a>
-          <a 
-            href="#" 
-            className={`gnb-promo-slide ${promoSlide === 1 ? 'active' : ''}`}
-            onClick={(e) => { e.preventDefault(); navigate('/login'); }}
-          >
-            <img 
-              src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&q=80&w=600" 
-              alt="Responsabilidad Social" 
-              className="gnb-promo-img" 
-            />
-            <div className="gnb-promo-overlay" />
-            <div className="gnb-promo-info">
-              <h3 className="gnb-promo-title">Responsabilidad Social</h3>
-              <p className="gnb-promo-desc">Conoce nuestro compromiso con el desarrollo sostenible del país.</p>
-            </div>
-          </a>
-          
-          <div className="gnb-promo-dots">
-            <button 
-              className={`gnb-promo-dot ${promoSlide === 0 ? 'active' : ''}`}
-              onClick={() => setPromoSlide(0)}
-              aria-label="Promo 1"
-            />
-            <button 
-              className={`gnb-promo-dot ${promoSlide === 1 ? 'active' : ''}`}
-              onClick={() => setPromoSlide(1)}
-              aria-label="Promo 2"
-            />
-          </div>
-        </div>
-
-        {/* Columna Derecha: Tarjeta Estática (Banca Simple) */}
-        <a 
-          href="#" 
-          className="gnb-promo-card-static" 
-          onClick={(e) => { e.preventDefault(); navigate('/login'); }}
-        >
-          <img 
-            src="https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&q=80&w=600" 
-            alt="Banca Simple" 
-            className="gnb-promo-img" 
-          />
-          <div className="gnb-promo-overlay" />
-          <div className="gnb-promo-info" style={{ padding: 24, position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 10 }}>
-            <h3 className="gnb-promo-title">Banca Simple</h3>
-            <p className="gnb-promo-desc">Tus operaciones de forma más rápida, sencilla y sin complicaciones.</p>
-          </div>
-        </a>
-      </section>
-
-      {/* 2. Banner de Campaña de Factoring */}
-      <section className="gnb-factoring-section">
-        <div className="gnb-factoring-banner">
-          <div className="gnb-factoring-content">
-            <h2 className="gnb-factoring-title">Factoring Banco GNB</h2>
-            <p className="gnb-factoring-desc">
-              Obtén liquidez inmediata cobrando tus facturas por cobrar de manera ágil, 
-              con tasas competitivas y atención personalizada para tu empresa.
-            </p>
-          </div>
-          <button className="gnb-btn-factoring" onClick={() => navigate('/login')}>
-            Conoce más
-          </button>
-        </div>
-      </section>
-
-      {/* 3. Recomendaciones de Seguridad Carousel (7 slides) */}
-      <section className="gnb-security-section">
-        <div className="gnb-security-header">
-          <span className="gnb-security-pre">Recomendaciones de Seguridad</span>
-          <h2 className="gnb-security-title">Tu Seguridad es Nuestra Prioridad</h2>
-          <div className="gnb-security-line" />
-          <p className="gnb-security-desc">
-            Te recomendamos algunas prácticas a seguir para mantener tu información de forma segura y confidencial.
-          </p>
-        </div>
-
-        <div className="gnb-security-carousel">
-          {securitySlides.map((slide, idx) => (
-            <div 
-              key={idx} 
-              className={`gnb-security-slide ${idx === currentSecSlide ? 'active' : ''}`}
+              style={{
+                background: currentSlide === index ? '#ffffff' : 'transparent',
+                border: '2px solid #ffffff',
+                color: currentSlide === index ? '#bf0909' : '#ffffff',
+                borderRadius: '50%',
+                width: '24px',
+                height: '24px',
+                display: 'grid',
+                placeItems: 'center',
+                fontSize: '11px',
+                fontWeight: '700',
+                cursor: 'pointer'
+              }}
             >
-              <h3 className="gnb-sec-slide-title">{slide.title}</h3>
-              <p className="gnb-sec-slide-body">{slide.body}</p>
-              
-              <div className="gnb-sec-slide-btn-row">
-                {slide.buttons.map((btn, bidx) => (
-                  <button 
-                    key={bidx} 
-                    className={bidx === 0 ? "gnb-btn-sec-link" : "gnb-btn-sec-link-outline"}
-                    onClick={() => navigate('/login')}
-                  >
-                    {btn.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+              {index + 1}
+            </button>
           ))}
+        </div>
+      </section>
 
-          {/* Navigation Arrows */}
-          <button 
-            className="gnb-security-arrow gnb-security-arrow-left" 
-            onClick={prevSecSlide}
-            aria-label="Anterior recomendación"
-          >
-            <ChevronLeft size={20} />
-          </button>
-          <button 
-            className="gnb-security-arrow gnb-security-arrow-right" 
-            onClick={nextSecSlide}
-            aria-label="Siguiente recomendación"
-          >
-            <ChevronRight size={20} />
-          </button>
-
-          {/* Indicators */}
-          <div className="gnb-security-dots">
-            {securitySlides.map((_, idx) => (
-              <button 
-                key={idx} 
-                className={`gnb-security-dot ${idx === currentSecSlide ? 'active' : ''}`}
-                onClick={() => setCurrentSecSlide(idx)}
-                aria-label={`Recomendación ${idx + 1}`}
-              />
-            ))}
+      {/* 2. Sección: Productos Pensados en Ti */}
+      <section style={{ padding: '40px 20px', background: '#ffffff', textAlign: 'center' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          <h2 style={{ fontSize: '22px', fontWeight: '700', color: '#1f2937', marginBottom: '24px' }}>Productos pensados en ti</h2>
+          
+          <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center' }}>
+            {PRODUCTOS.map((prod, idx) => {
+              const Icon = prod.icon
+              return (
+                <div 
+                  key={idx} 
+                  onClick={() => navigate('/login')}
+                  style={{ 
+                    flex: '1 1 150px',
+                    maxWidth: '180px',
+                    background: '#ffffff',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '10px',
+                    padding: '24px 16px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '12px',
+                    transition: 'transform 0.15s'
+                  }}
+                >
+                  <span style={{ color: '#C31A1F', background: '#fdf2f2', padding: '12px', borderRadius: '50%' }}>
+                    <Icon size={28} />
+                  </span>
+                  <span style={{ fontSize: '12.5px', fontWeight: '600', color: '#4b5563' }}>{prod.label}</span>
+                </div>
+              )
+            })}
           </div>
         </div>
       </section>
 
-      {/* 4. Fila de Enlaces Rápidos (6 Iconos Circulares) */}
-      <section className="gnb-quick-links-section">
-        <div className="gnb-quick-links-grid">
+      {/* 3. Sección: Banners de Beneficios e Inclusión Financiera */}
+      <section style={{ padding: '24px 20px', background: '#fcfcfc' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
           
-          <a href="#" className="gnb-quick-link-item" onClick={(e) => { e.preventDefault(); navigate('/login'); }}>
-            <div className="gnb-quick-link-circle">
-              <ShieldCheck size={28} />
+          {/* Banner 1 */}
+          <div 
+            onClick={() => navigate('/login')}
+            style={{ 
+              flex: '1 1 45%', 
+              background: 'linear-gradient(135deg, #7c0000 0%, #bf0909 100%)', 
+              borderRadius: '12px', 
+              overflow: 'hidden', 
+              cursor: 'pointer',
+              display: 'flex',
+              color: '#fff',
+              minHeight: '200px',
+              boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)'
+            }}
+          >
+            <div style={{ flex: 1, padding: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+              <span style={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', opacity: '0.8', marginBottom: '8px' }}>Conoce BN Beneficios</span>
+              <h3 style={{ fontSize: '18px', fontWeight: '700', lineHeight: '1.3' }}>Aprovecha las promociones que te ofrece tu tarjeta Débito BN</h3>
             </div>
-            <span className="gnb-quick-link-label">Banca Simple</span>
-          </a>
+            <div style={{ flex: 1, backgroundImage: 'url("https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&q=80&w=300")', backgroundSize: 'cover', backgroundPosition: 'center', borderTopLeftRadius: '100px' }} />
+          </div>
 
-          <a href="#" className="gnb-quick-link-item" onClick={(e) => { e.preventDefault(); navigate('/login'); }}>
-            <div className="gnb-quick-link-circle">
-              <Briefcase size={28} />
+          {/* Banner 2 */}
+          <div 
+            onClick={() => navigate('/login')}
+            style={{ 
+              flex: '1 1 45%', 
+              background: 'linear-gradient(135deg, #7c0000 0%, #bf0909 100%)', 
+              borderRadius: '12px', 
+              overflow: 'hidden', 
+              cursor: 'pointer',
+              display: 'flex',
+              color: '#fff',
+              minHeight: '200px',
+              boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)'
+            }}
+          >
+            <div style={{ flex: 1, padding: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+              <span style={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', opacity: '0.8', marginBottom: '8px' }}>Inclusión Financiera</span>
+              <h3 style={{ fontSize: '18px', fontWeight: '700', lineHeight: '1.3' }}>Promoviendo servicios financieros de calidad para todos</h3>
             </div>
-            <span className="gnb-quick-link-label">Crédito por Convenios</span>
-          </a>
+            <div style={{ flex: 1, backgroundImage: 'url("https://images.unsplash.com/photo-1556742044-3c52d6e88c62?auto=format&fit=crop&q=80&w=300")', backgroundSize: 'cover', backgroundPosition: 'center', borderTopLeftRadius: '100px' }} />
+          </div>
 
-          <a href="#" className="gnb-quick-link-item" onClick={(e) => { e.preventDefault(); navigate('/login'); }}>
-            <div className="gnb-quick-link-circle">
-              <Smartphone size={28} />
+        </div>
+      </section>
+
+      {/* 4. Sección: Noticias y Alto al Fraude */}
+      <section style={{ padding: '40px 20px', background: '#ffffff' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#1f2937' }}>Noticias</h2>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px' }}>
+            {NOTICIAS.map((noti, idx) => (
+              <div 
+                key={idx}
+                onClick={() => navigate('/login')}
+                style={{ 
+                  background: '#ffffff', 
+                  borderRadius: '10px', 
+                  border: '1px solid #e5e7eb', 
+                  overflow: 'hidden', 
+                  cursor: 'pointer',
+                  display: 'flex',
+                  flexDirection: 'column'
+                }}
+              >
+                <div style={{ height: '140px', backgroundImage: `url(${noti.image})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+                <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px', flexGrow: 1 }}>
+                  <span style={{ fontSize: '11px', color: '#9ca3af' }}>{noti.date}</span>
+                  <h4 style={{ fontSize: '13.5px', fontWeight: '600', color: '#374151', lineHeight: '1.4' }}>{noti.title}</h4>
+                </div>
+              </div>
+            ))}
+
+            <div 
+              onClick={() => navigate('/login')}
+              style={{ 
+                background: '#ffffff', 
+                borderRadius: '10px', 
+                border: '1px solid #e5e7eb', 
+                padding: '24px 20px', 
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                textAlign: 'center',
+                gap: '16px'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', border: '2px solid #C31A1F', padding: '6px 12px', borderRadius: '4px' }}>
+                <span style={{ fontWeight: '800', color: '#1f2937', fontSize: '13px' }}>ALTO AL FRAUDE</span>
+              </div>
+              <h4 style={{ fontSize: '14px', fontWeight: '700', color: '#1f2937', margin: 0 }}>
+                Tu seguridad es primero, aprende a detectar fraudes y estafas
+              </h4>
+              <button style={{ background: '#C31A1F', color: '#ffffff', border: 'none', fontWeight: '700', padding: '8px 20px', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}>
+                Infórmate aquí
+              </button>
             </div>
-            <span className="gnb-quick-link-label">Servicio al Cliente</span>
-          </a>
-
-          <a href="#" className="gnb-quick-link-item" onClick={(e) => { e.preventDefault(); navigate('/login'); }}>
-            <div className="gnb-quick-link-circle">
-              <MapPin size={28} />
-            </div>
-            <span className="gnb-quick-link-label">Canales de Atención</span>
-          </a>
-
-          <a href="#" className="gnb-quick-link-item" onClick={(e) => { e.preventDefault(); navigate('/login'); }}>
-            <div className="gnb-quick-link-circle">
-              <Smartphone size={28} />
-            </div>
-            <span className="gnb-quick-link-label">Banca Móvil</span>
-          </a>
-
-          <a href="#" className="gnb-quick-link-item" onClick={(e) => { e.preventDefault(); navigate('/login'); }}>
-            <div className="gnb-quick-link-circle">
-              <ShieldCheck size={28} />
-            </div>
-            <span className="gnb-quick-link-label">Políticas de Seguridad</span>
-          </a>
-
+          </div>
         </div>
       </section>
 

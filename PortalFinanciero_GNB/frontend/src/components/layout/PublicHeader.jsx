@@ -1,202 +1,184 @@
 import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import {
-  MapPin, User, Lock, Search, Facebook, Instagram, ChevronDown, Menu, X
-} from 'lucide-react'
+import { useNavigate, Link } from 'react-router-dom'
+import { Search, ChevronDown, Menu, X } from 'lucide-react'
 import Logo from '../ui/Logo.jsx'
-import LogoImg from '../../images/image copy.png'
 
 export default function PublicHeader() {
   const navigate = useNavigate()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState('personas')
-
-  const topLinks = [
-    { label: 'Quiénes Somos', href: '#' },
-    { label: 'Banco GNB Sudameris', href: '#' },
-    { label: 'Contacto', href: '#' },
-    { label: 'Venta de Adjudicados +', href: '#' },
-    { label: 'Accesos Directos', href: '#' }
-  ]
-
-  const categories = [
-    'Cuentas', 'Depósitos', 'Préstamos', 'Proyectos Inmobiliarios',
-    'Tarjetas', 'Seguros', 'Servicios', 'Canales de Atención'
-  ]
+  const [activeTab, setActiveTab] = useState('clientes')
 
   return (
-    <header className="gnb-public-header">
-      {/* 1. Franja Gris/Blanca Superior (Utility Bar) */}
-      <div className="gnb-top-utility">
-        <div className="gnb-header-container" style={{ justifyContent: 'flex-end', gap: '24px' }}>
-          <div className="gnb-utility-left">
-            {topLinks.map((link, idx) => (
-              <React.Fragment key={link.label}>
-                <a href={link.href} className="gnb-utility-link">{link.label}</a>
-                {idx < topLinks.length - 1 && <span className="gnb-utility-divider">|</span>}
-              </React.Fragment>
-            ))}
+    <header className="gnb-public-header" style={{ fontFamily: '"Outfit", sans-serif', width: '100%', background: '#fff', borderBottom: '1px solid #e5e7eb' }}>
+      
+      {/* 1. Utility Top Bar: República del Perú and Segments */}
+      <div className="gnb-top-official-bar" style={{ background: '#f3f4f6', borderBottom: '1px solid #e5e7eb', fontSize: '11px', color: '#4b5563', padding: '6px 20px' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ fontSize: '12px' }}>🇵🇪</span>
+            <span style={{ fontWeight: 600, color: '#111827' }}>República del Perú</span>
           </div>
-          <div className="gnb-utility-right">
-            <div className="gnb-search-box">
-              <input type="text" placeholder="Buscar" />
-              <Search size={14} className="gnb-search-icon" />
-            </div>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <button 
+              onClick={() => setActiveTab('clientes')} 
+              style={{ 
+                background: activeTab === 'clientes' ? '#ffffff' : 'transparent', 
+                border: 'none', 
+                borderBottom: activeTab === 'clientes' ? '2px solid #C31A1F' : 'none',
+                color: activeTab === 'clientes' ? '#111827' : '#4b5563',
+                padding: '4px 12px',
+                fontSize: '11px',
+                fontWeight: activeTab === 'clientes' ? '700' : '500',
+                cursor: 'pointer'
+              }}
+            >
+              Clientes
+            </button>
+            <button 
+              onClick={() => setActiveTab('ciudadanos')} 
+              style={{ 
+                background: 'transparent', 
+                border: 'none', 
+                color: '#4b5563', 
+                padding: '4px 12px', 
+                fontSize: '11px',
+                fontWeight: '500',
+                cursor: 'pointer' 
+              }}
+            >
+              Ciudadanos
+            </button>
+            <button 
+              onClick={() => setActiveTab('gobierno')} 
+              style={{ 
+                background: 'transparent', 
+                border: 'none', 
+                color: '#4b5563', 
+                padding: '4px 12px', 
+                fontSize: '11px',
+                fontWeight: '500',
+                cursor: 'pointer' 
+              }}
+            >
+              Entidades del Gobierno
+            </button>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <a href="#" style={{ color: '#4b5563', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              Portal de Transparencia
+              <span style={{ background: '#C31A1F', color: '#fff', fontSize: '9px', fontWeight: 'bold', padding: '1px 5px', borderRadius: '50%' }}>PT</span>
+            </a>
           </div>
         </div>
       </div>
 
-      {/* 2. Barra Media de Branding y Botones Principales */}
-      <div className="gnb-top-main" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
-        {/* Nivel Superior: Logo */}
-        <div className="gnb-header-container" style={{ justifyContent: 'flex-start', padding: '16px 20px 8px 20px' }}>
-          <button className="gnb-brand-btn" onClick={() => navigate('/')} aria-label="Banco GNB" style={{ padding: 0 }}>
-            <img src={LogoImg} alt="Logo Principal" style={{ height: '81px', objectFit: 'contain' }} />
-          </button>
-        </div>
+      {/* 2. Main Navigation Bar */}
+      <div style={{ padding: '12px 20px', background: '#ffffff' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          
+          {/* Logo Banco de la Nación */}
+          <Link to="/" style={{ textDecoration: 'none' }}>
+            <Logo size={38} variant="dark" />
+          </Link>
 
-        {/* Nivel Inferior: Botones de Acción */}
-        <div className="gnb-header-container" style={{ justifyContent: 'flex-end', padding: '0px 20px 16px 20px' }}>
-          <div className="gnb-actions-desktop" style={{ display: 'flex', gap: '20px', alignItems: 'center', justifyContent: 'flex-end', width: '100%' }}>
-            <a href="#" className="gnb-icon-link">
-              <MapPin size={16} className="gnb-action-icon-blue" />
-              <span>Red de Agencias</span>
+          {/* Desktop Menu */}
+          <nav className="gnb-nav-desktop-main" style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+            <a href="#" style={{ color: '#1f2937', fontWeight: '600', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13.5px' }}>
+              Productos y Servicios <ChevronDown size={12} />
+            </a>
+            <a href="#" style={{ color: '#1f2937', fontWeight: '600', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13.5px' }}>
+              Canales Digitales <ChevronDown size={12} />
+            </a>
+            <a href="#" style={{ color: '#1f2937', fontWeight: '600', textDecoration: 'none', fontSize: '13.5px' }}>
+              BN Beneficios
+            </a>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#4b5563', cursor: 'pointer', fontWeight: '600', fontSize: '13.5px' }}>
+              <Search size={14} />
+              <span>Buscar</span>
+            </div>
+          </nav>
+
+          {/* Desktop Action Buttons */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            {/* Button Págalo.pe */}
+            <a 
+              href="https://pagalo.pe" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              style={{ 
+                background: '#9e1014', 
+                color: '#ffffff', 
+                textDecoration: 'none',
+                fontWeight: '700', 
+                padding: '6px 14px', 
+                borderRadius: '999px',
+                fontSize: '12.5px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+              }}
+            >
+              <span style={{ fontStyle: 'italic', marginRight: '2px' }}>págalo</span>
+              <span style={{ fontSize: '9px', verticalAlign: 'super' }}>.pe</span>
             </a>
 
-            <a href="#" className="gnb-icon-link">
-              <User size={16} className="gnb-action-icon-blue" />
-              <span>Regístrate +</span>
-            </a>
-
-            {/* Botón Solicita tu préstamo con tag NUEVO */}
-            <div className="gnb-badge-btn-wrapper">
-              <span className="gnb-badge-tag-new">NUEVO</span>
-              <button className="gnb-btn-blue-outline" onClick={() => navigate('/login')}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: 6 }}>
-                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                </svg>
-                <span style={{ textAlign: 'left', lineHeight: '1.1' }}>Solicita tu<br />préstamo</span>
-              </button>
-            </div>
-
-            {/* Botón Abre tu cuenta */}
-            <button className="gnb-btn-blue-outline" onClick={() => navigate('/login')}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: 6 }}>
-                <rect width="20" height="14" x="2" y="5" rx="2" />
-                <line x1="2" x2="22" y1="10" y2="10" />
-              </svg>
-              <span style={{ textAlign: 'left', lineHeight: '1.1' }}>Abre tu<br />cuenta</span>
-            </button>
-
-            {/* Botón Banca por Internet (Lock icon + Green background) */}
-            <button className="gnb-btn-internet" onClick={() => navigate('/login')}>
-              <Lock size={14} style={{ marginRight: 6 }} />
-              <span style={{ textAlign: 'left', lineHeight: '1.1' }}>Ingresa a Banca<br />por internet</span>
-            </button>
-          </div>
-
-          {/* Menú móvil burguer */}
-          <button
-            className="gnb-mobile-toggle"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle Menu"
-            style={{ position: 'absolute', right: '20px', top: '20px' }}
-          >
-            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-        </div>
-      </div>
-
-      {/* 3. Franja Verde de Segmentos (Banca Personas, Empresas, etc.) */}
-      <div className="gnb-segment-bar">
-        <div className="gnb-header-container">
-          <div className="gnb-segments">
-            <button
-              className={`gnb-segment-tab ${activeTab === 'personas' ? 'active' : ''}`}
-              onClick={() => setActiveTab('personas')}
+            {/* Button Banca por Internet */}
+            <button 
+              onClick={() => navigate('/login')}
+              style={{ 
+                background: '#C31A1F', 
+                color: '#ffffff', 
+                border: 'none',
+                fontWeight: '700', 
+                padding: '6px 16px', 
+                borderRadius: '999px',
+                fontSize: '12.5px',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+              }}
             >
-              BANCA PERSONAS
-            </button>
-            <button
-              className={`gnb-segment-tab ${activeTab === 'empresas' ? 'active' : ''}`}
-              onClick={() => setActiveTab('empresas')}
-            >
-              BANCA EMPRESAS
-            </button>
-            <button
-              className={`gnb-segment-tab ${activeTab === 'pensionista' ? 'active' : ''}`}
-              onClick={() => setActiveTab('pensionista')}
-            >
-              BANCA PENSIONISTA
-            </button>
-          </div>
-
-          <div className="gnb-social-share">
-            <span>Síguenos en:</span>
-            <a href="#" aria-label="Facebook"><Facebook size={16} /></a>
-            <a href="#" aria-label="Instagram"><Instagram size={16} /></a>
-          </div>
-        </div>
-      </div>
-
-      {/* 4. Barra Blanca Inferior (Submenu) */}
-      <div className="gnb-submenu-bar">
-        <div className="gnb-header-container gnb-submenu-container">
-          {categories.map((cat) => (
-            <div key={cat} className="gnb-submenu-item" onClick={() => cat === 'Cuentas' && navigate('/cuentas')}>
-              <span>{cat}</span>
-              <ChevronDown size={12} className="gnb-submenu-arrow" />
-
-              {cat === 'Cuentas' && (
-                <div className="gnb-dropdown-menu">
-                  <div className="gnb-dropdown-img-box">
-                    <img src="/images/cuentas_menu_banner.png" alt="Cuentas" className="gnb-dropdown-img" />
-                  </div>
-                  <div className="gnb-dropdown-content">
-                    <h3 className="gnb-dropdown-title">Cuentas</h3>
-                    <ul className="gnb-dropdown-list">
-                      <li><a href="#" className="gnb-dropdown-link">Cuenta Ahorro Rolando</a></li>
-                      <li><a href="#" className="gnb-dropdown-link">Cuenta Corriente</a></li>
-                      <li><a href="#" className="gnb-dropdown-link">Cuenta Transaccional</a></li>
-                      <li><a href="#" className="gnb-dropdown-link">Cuenta Ahorro</a></li>
-                      <li><a href="#" className="gnb-dropdown-link">Cuenta Ahorro Hipotecario</a></li>
-                      <li><a href="#" className="gnb-dropdown-link">Cuenta Sueldo</a></li>
-                      <li><a href="#" className="gnb-dropdown-link">Cuenta CTS</a></li>
-                    </ul>
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Menú Móvil Desplegable */}
-      {mobileMenuOpen && (
-        <div className="gnb-mobile-menu">
-          <div className="gnb-mobile-actions">
-            <button className="gnb-btn-internet w-full" onClick={() => { navigate('/login'); setMobileMenuOpen(false); }}>
-              <Lock size={14} style={{ marginRight: 6 }} />
               Banca por Internet
             </button>
-            <button className="gnb-btn-blue-outline w-full mt-2" onClick={() => { navigate('/login'); setMobileMenuOpen(false); }}>
-              Abre tu cuenta
-            </button>
-            <button className="gnb-btn-blue-outline w-full mt-2" onClick={() => { navigate('/login'); setMobileMenuOpen(false); }}>
-              Solicita tu préstamo
+
+            {/* Mobile menu toggle */}
+            <button 
+              className="gnb-mobile-toggle-btn"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#1f2937', padding: '4px' }}
+            >
+              {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
           </div>
 
-          <div className="gnb-mobile-links">
-            <a href="#" className="gnb-mobile-link"><MapPin size={16} style={{ marginRight: 8 }} /> Red de Agencias</a>
-            <a href="#" className="gnb-mobile-link"><User size={16} style={{ marginRight: 8 }} /> Regístrate +</a>
-            <hr />
-            {categories.map((cat) => (
-              <a key={cat} href="#" className="gnb-mobile-link justify-between">
-                <span>{cat}</span>
-                <ChevronDown size={14} />
-              </a>
-            ))}
+        </div>
+      </div>
+
+      {/* Mobile menu */}
+      {mobileMenuOpen && (
+        <div style={{ padding: '16px', background: '#ffffff', borderTop: '1px solid #e5e7eb' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <button 
+              onClick={() => { navigate('/login'); setMobileMenuOpen(false); }}
+              style={{ width: '100%', background: '#C31A1F', color: '#fff', border: 'none', padding: '10px', borderRadius: '8px', fontWeight: '700' }}
+            >
+              Banca por Internet
+            </button>
+            <a 
+              href="https://pagalo.pe" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              style={{ width: '100%', background: '#9e1014', color: '#fff', display: 'block', textAlign: 'center', textDecoration: 'none', padding: '10px', borderRadius: '8px', fontWeight: '700' }}
+            >
+              págalo.pe
+            </a>
+            <hr style={{ border: '0', borderTop: '1px solid #e5e7eb' }} />
+            <a href="#" style={{ color: '#1f2937', fontWeight: '600', textDecoration: 'none', padding: '6px 0', display: 'block' }}>Productos y Servicios</a>
+            <a href="#" style={{ color: '#1f2937', fontWeight: '600', textDecoration: 'none', padding: '6px 0', display: 'block' }}>Canales Digitales</a>
+            <a href="#" style={{ color: '#1f2937', fontWeight: '600', textDecoration: 'none', padding: '6px 0', display: 'block' }}>BN Beneficios</a>
           </div>
         </div>
       )}

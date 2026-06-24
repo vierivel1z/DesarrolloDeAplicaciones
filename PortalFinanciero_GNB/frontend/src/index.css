@@ -1,35 +1,35 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
-  /* Paleta de marca Banco GNB — colores oficiales */
-  --hb-red: #73b71c;          /* Verde principal GNB */
-  --hb-red-dark: #5fa014;     /* Verde principal oscuro (hover) */
-  --hb-red-light: #f4faf0;    /* Verde muy claro para fondos de alertas/botones hover */
-  --hb-magenta: #0a2e5c;      /* Azul profundo GNB (para textos/títulos/topbar) */
-  --hb-turquesa: #005691;     /* Azul secundario GNB (para links, botones de acción) */
-  --hb-naranja: #82bc00;      /* Verde brillante GNB (para barras secundarias/acentos) */
-  --hb-amarillo: #e5b224;     /* Dorado GNB (para acentos/destacados/avisos) */
-  --hb-verde-t: #5cb813;      /* Verde hoja (usado en el logo/árbol) */
-  --hb-morado: #0a2e5c;       /* Mapeado a Azul profundo GNB */
+  /* Paleta de marca Banco de la Nación — colores oficiales */
+  --hb-red: #C31A1F;          /* Rojo principal BN */
+  --hb-red-dark: #9e1014;     /* Rojo principal oscuro (hover) */
+  --hb-red-light: #fdf2f2;    /* Rojo muy claro para fondos de alertas/botones hover */
+  --hb-magenta: #1f2937;      /* Gris pizarra oscuro (para textos/títulos/topbar) */
+  --hb-turquesa: #C31A1F;     /* Rojo principal BN */
+  --hb-naranja: #dc2626;      /* Rojo brillante (para acentos) */
+  --hb-amarillo: #f59e0b;     /* Dorado/Ámbar (para acentos/destacados/avisos) */
+  --hb-verde-t: #C31A1F;      /* Rojo principal BN */
+  --hb-morado: #111827;       /* Slate muy oscuro */
 
   --hb-bg: #f8fafc;           /* Fondo gris pizarra muy claro y premium */
   --hb-text: #1e293b;         /* Texto gris oscuro pizarra */
   --hb-muted: #64748b;        /* Texto secundario/desactivado */
   --hb-border: #e2e8f0;       /* Bordes grises más limpios */
-  --hb-green: #15803d;        /* Verde para transacciones exitosas */
-  --hb-amber: #b45309;        /* Ámbar para advertencias */
+  --hb-green: #16a34a;        /* Verde para transacciones exitosas */
+  --hb-amber: #d97706;        /* Ámbar para advertencias */
   --hb-shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
   --hb-radius: 12px;          /* Esquinas un poco más elegantes/sutiles */
 
-  /* Gradiente y franja tejida adaptadas a Banco GNB */
-  --hb-grad: linear-gradient(110deg, #0a2e5c 0%, #114b8a 55%, #73b71c 100%);
-  --hb-grad-login: linear-gradient(135deg, #061e3d 0%, #0a2e5c 50%, #0d4484 100%);
+  /* Gradiente y franja tejida adaptadas a Banco de la Nación */
+  --hb-grad: linear-gradient(110deg, #9e1014 0%, #C31A1F 60%, #e52c31 100%);
+  --hb-grad-login: linear-gradient(135deg, #4c0608 0%, #7f0b0f 50%, #9e1014 100%);
   --hb-franja: linear-gradient(
     90deg,
-    #73b71c 0%,
-    #82bc00 40%,
-    #e5b224 70%,
-    #0a2e5c 100%
+    #C31A1F 0%,
+    #dc2626 40%,
+    #f59e0b 70%,
+    #9e1014 100%
   );
 }
 
@@ -864,7 +864,7 @@ button {
 
 /* ---- Barra superior oscura ---- */
 .bbva-topbar {
-  background: linear-gradient(90deg, #061e3d, #0a2e5c);
+  background: var(--hb-grad);
   color: #fff;
 }
 .bbva-topbar-inner {
@@ -988,50 +988,59 @@ button {
 .bbva-tab.active { color: #fff; border-bottom-color: var(--hb-amarillo); background: rgba(0,0,0,0.08); }
 
 /* ---- Contenedor ---- */
-.bbva-main { background: var(--hb-bg); min-height: calc(100vh - 120px); }
+.bbva-main { background: var(--hb-bg); min-height: calc(100vh - 65px); }
 .bbva-container { max-width: 1180px; margin: 0 auto; padding: 24px 20px 56px; }
 
 /* ---- Page layout 2 columnas ---- */
-.bbva-page { display: grid; grid-template-columns: 1fr 320px; gap: 22px; align-items: start; }
+.bbva-page { display: grid; grid-template-columns: 1fr; gap: 22px; align-items: start; }
 .bbva-page-main { min-width: 0; }
-.bbva-page-aside { position: sticky; top: 76px; }
+.bbva-page-aside { display: none; }
 .bbva-page-head {
-  display: flex; align-items: flex-start; justify-content: space-between;
-  gap: 12px; margin-bottom: 16px; flex-wrap: wrap;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; margin-bottom: 22px; flex-wrap: wrap;
+  padding-bottom: 12px; border-bottom: 1px solid #e2e8f0;
 }
-.bbva-page-title { font-size: 24px; font-weight: 800; margin: 0 0 2px; color: #1f2430; }
-.bbva-page-sub { color: var(--hb-muted); margin: 0; font-size: 13.5px; }
-.bbva-page-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.bbva-page-title { font-size: 22px; font-weight: 800; margin: 0; color: #1e293b; letter-spacing: -0.5px; }
+.bbva-page-sub { color: var(--hb-muted); margin: 4px 0 0 0; font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+.bbva-page-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 
-/* ---- Botones ---- */
+/* ---- Botones Premiums ---- */
 .bbva-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  background: var(--hb-red); color: #fff; border: none;
-  padding: 11px 20px; border-radius: 9px; font-size: 14px; font-weight: 700;
-  cursor: pointer;
+  background: linear-gradient(135deg, #C31A1F 0%, #9e1014 100%);
+  color: #fff; border: none;
+  padding: 10px 20px; border-radius: 10px; font-size: 13.5px; font-weight: 700;
+  cursor: pointer; transition: all 0.2s ease;
+  box-shadow: 0 4px 10px rgba(195, 26, 31, 0.2);
 }
-.bbva-btn:hover { background: var(--hb-red-dark); }
-.bbva-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.bbva-btn:hover { background: linear-gradient(135deg, #a81216 0%, #850b0f 100%); transform: translateY(-1px); box-shadow: 0 6px 14px rgba(195, 26, 31, 0.3); }
+.bbva-btn:active { transform: translateY(0); }
+.bbva-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; box-shadow: none; }
+
 .bbva-btn-gray {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: #eef0f3; color: #374151; border: none;
-  padding: 11px 20px; border-radius: 9px; font-size: 14px; font-weight: 600; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  background: #f1f5f9; color: #334155; border: 1px solid #e2e8f0;
+  padding: 10px 20px; border-radius: 10px; font-size: 13.5px; font-weight: 700; cursor: pointer;
+  transition: all 0.2s ease;
 }
-.bbva-btn-gray:hover { background: #e2e6ea; }
+.bbva-btn-gray:hover { background: #e2e8f0; color: #1e293b; }
 .bbva-btn-ghost {
-  display: inline-flex; align-items: center; gap: 7px;
-  background: #fff; color: var(--hb-red); border: 1px solid var(--hb-border);
-  padding: 9px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  background: #fff; color: #C31A1F; border: 1.5px solid #C31A1F;
+  padding: 9px 16px; border-radius: 10px; font-size: 13.5px; font-weight: 700; cursor: pointer;
+  transition: all 0.2s ease;
 }
-.bbva-btn-ghost:hover { border-color: var(--hb-red); background: var(--hb-red-light); }
-.bbva-btn-ghost.sm { padding: 6px 11px; font-size: 12.5px; }
-.bbva-btn-ghost:disabled { opacity: 0.55; cursor: not-allowed; }
+.bbva-btn-ghost:hover { background: #fdf2f2; }
+.bbva-btn-ghost.sm { padding: 6px 12px; font-size: 12px; border-radius: 8px; }
+.bbva-btn-ghost:disabled { opacity: 0.55; cursor: not-allowed; background: #fff; }
+
 .bbva-link {
   display: inline-flex; align-items: center; gap: 4px;
-  background: none; border: none; color: var(--hb-turquesa);
+  background: none; border: none; color: #C31A1F;
   font-weight: 700; font-size: 13px; cursor: pointer;
+  transition: color 0.2s;
 }
-.bbva-link:hover { text-decoration: underline; }
+.bbva-link:hover { color: #9e1014; text-decoration: none; }
 
 /* ---- Panel de acciones (aside) ---- */
 .bbva-actions {
@@ -1061,13 +1070,13 @@ button {
 .bbva-action-chev { color: var(--hb-muted); }
 
 /* ---- Inicio: saludo + KPIs ---- */
-.bbva-hello h1 { font-size: 22px; margin: 0 0 4px; color: #1f2430; }
-.bbva-hello p { margin: 0 0 18px; color: var(--hb-muted); font-size: 14px; }
+.bbva-hello h1 { font-size: 24px; margin: 0 0 6px; color: #1e293b; font-weight: 800; }
+.bbva-hello p { margin: 0 0 20px; color: var(--hb-muted); font-size: 14.5px; }
 .bbva-kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 18px; }
 .bbva-kpi {
-  background: #fff; border: 1px solid var(--hb-border); border-left: 4px solid var(--hb-red);
+  background: #fff; border: 1px solid var(--hb-border); border-left: 5px solid var(--hb-red);
   border-radius: var(--hb-radius); box-shadow: var(--hb-shadow);
-  padding: 16px 18px; display: flex; gap: 14px; align-items: center;
+  padding: 18px 20px; display: flex; gap: 14px; align-items: center;
 }
 .bbva-kpi:nth-child(2) { border-left-color: var(--hb-turquesa); }
 .bbva-kpi-ico { width: 48px; height: 48px; border-radius: 12px; display: grid; place-items: center; flex-shrink: 0; }
@@ -1076,54 +1085,58 @@ button {
 .bbva-kpi small { color: var(--hb-muted); font-size: 12px; }
 
 /* ---- Listas de productos (resumen) ---- */
-.bbva-prodlist { list-style: none; padding: 0; margin: 0; }
+.bbva-prodlist { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; }
 .bbva-prodlist li {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 13px 6px; border-bottom: 1px solid var(--hb-border); cursor: pointer;
+  padding: 14px 16px; border: 1px solid #f1f5f9; border-radius: 10px; cursor: pointer;
+  transition: all 0.2s ease;
 }
-.bbva-prodlist li:hover { background: #fcfcfd; }
-.bbva-prod-info { display: flex; flex-direction: column; gap: 3px; }
+.bbva-prodlist li:hover { background: #f8fafc; border-color: #e2e8f0; transform: translateX(3px); }
+.bbva-prod-info { display: flex; flex-direction: column; gap: 4px; }
+.bbva-prod-info strong { font-size: 14.5px; color: #1e293b; }
 .bbva-prod-info small { color: var(--hb-muted); font-size: 12.5px; display: flex; align-items: center; gap: 6px; }
-.bbva-prod-amt { display: flex; align-items: center; gap: 8px; color: var(--hb-muted); }
+.bbva-prod-amt { display: flex; align-items: center; gap: 8px; color: #64748b; font-weight: bold; }
 .bbva-prodlist-total {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 13px 6px; cursor: default;
-  font-size: 13.5px; color: var(--hb-muted);
+  padding: 16px 8px 0; cursor: default;
+  font-size: 14px; color: #475569; font-weight: 700; border-top: 1px dashed #e2e8f0; margin-top: 10px;
 }
 .bbva-prodlist-total:hover { background: none; }
-.bbva-money-strong { font-size: 17px; font-weight: 800; color: var(--hb-red); }
-.bbva-empty { text-align: center; color: var(--hb-muted); padding: 22px 10px; margin: 0; }
-.bbva-cell-prod { display: flex; flex-direction: column; }
-.bbva-cell-prod small { color: var(--hb-muted); font-size: 11px; }
+.bbva-money-strong { font-size: 17.5px; font-weight: 800; color: #C31A1F; }
+.bbva-empty { text-align: center; color: var(--hb-muted); padding: 22px 10px; margin: 0; font-size: 13.5px; }
+.bbva-cell-prod { display: flex; flex-direction: column; gap: 2px; }
+.bbva-cell-prod strong { font-size: 14px; color: #1e293b; }
+.bbva-cell-prod small { color: var(--hb-muted); font-size: 11.5px; }
 
 /* ---- Cuentas de ahorro (acordeón) ---- */
-.bbva-acc-list { display: flex; flex-direction: column; }
-.bbva-acc { border-bottom: 1px solid var(--hb-border); }
-.bbva-acc.open { background: #fcfbfc; border-radius: 10px; }
+.bbva-acc-list { display: flex; flex-direction: column; gap: 12px; }
+.bbva-acc { border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff; overflow: hidden; transition: all 0.25s ease; }
+.bbva-acc.open { border-color: #cbd5e1; box-shadow: 0 4px 12px rgba(148,163,184,0.08); }
 .bbva-acc-head {
   display: flex; align-items: center; justify-content: space-between;
-  gap: 14px; padding: 14px 8px; flex-wrap: wrap;
+  gap: 14px; padding: 16px 20px; flex-wrap: wrap;
 }
 .bbva-acc-main { display: flex; align-items: center; gap: 12px; }
 .bbva-acc-ico {
   width: 42px; height: 42px; border-radius: 10px;
-  background: var(--hb-red-light); color: var(--hb-red);
+  background: #fdf2f2; color: #C31A1F;
   display: grid; place-items: center; flex-shrink: 0;
 }
-.bbva-acc-main strong { display: block; font-size: 15px; }
-.bbva-acc-main small { color: var(--hb-muted); font-size: 12.5px; }
+.bbva-acc-main strong { display: block; font-size: 15px; color: #1e293b; }
+.bbva-acc-main small { color: var(--hb-muted); font-size: 12.5px; margin-top: 2px; }
 .bbva-acc-right { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
 .bbva-acc-saldo { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
-.bbva-acc-saldo .hb-money { font-size: 17px; font-weight: 800; }
+.bbva-acc-saldo .hb-money { font-size: 17px; font-weight: 800; color: #1e293b; }
 .bbva-acc-btns { display: flex; gap: 8px; }
 .bbva-chev { transition: transform 0.15s; }
 .bbva-chev.up { transform: rotate(180deg); }
 
 .bbva-detalle {
-  padding: 16px 12px 18px; margin: 0 4px 8px;
+  padding: 18px 20px 22px;
   border-top: 1px dashed var(--hb-border);
+  background: #fafafb;
 }
-.bbva-detalle-title { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; font-size: 14px; color: var(--hb-red); }
+.bbva-detalle-title { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; font-size: 14px; color: #C31A1F; font-weight: 700; }
 .bbva-detalle-sub { margin: 16px 0 8px; font-size: 13px; color: #374151; }
 .bbva-cts-disp {
   display: flex; align-items: center; justify-content: space-between;
@@ -1134,51 +1147,53 @@ button {
 .bbva-cts-disp .bbva-money-strong { color: var(--hb-turquesa); }
 
 /* ---- Operaciones hub ---- */
-.bbva-op-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.bbva-op-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
 .bbva-op-card {
   display: flex; align-items: center; gap: 16px;
   background: #fff; border: 1px solid var(--hb-border);
   border-radius: var(--hb-radius); box-shadow: var(--hb-shadow);
   padding: 20px; cursor: pointer; text-align: left;
-  transition: transform 0.12s, box-shadow 0.12s;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 .bbva-op-card:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(0,0,0,0.10); }
 .bbva-op-ico { width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center; flex-shrink: 0; }
 .bbva-op-body { flex: 1; display: flex; flex-direction: column; gap: 3px; }
-.bbva-op-body strong { font-size: 16px; }
+.bbva-op-body strong { font-size: 16px; color: #1e293b; }
 .bbva-op-body small { color: var(--hb-muted); font-size: 13px; line-height: 1.45; }
 .bbva-op-chev { color: var(--hb-muted); flex-shrink: 0; }
 
 /* ---- Formularios / confirmación ---- */
-.hb-field-label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: #374151; }
-.bbva-saldo-hint { font-size: 13px; color: var(--hb-muted); margin: -4px 0 14px; }
+.hb-field-label { display: block; font-size: 13.5px; font-weight: 700; margin-bottom: 8px; color: #334155; }
+.bbva-saldo-hint { font-size: 13px; color: var(--hb-muted); margin: -4px 0 14px; font-weight: 500; }
 .bbva-field-note { display: block; color: var(--hb-muted); font-size: 12px; margin-top: 5px; }
-.bbva-form-actions { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
-.bbva-confirm-lead { font-size: 14px; font-weight: 600; margin: 0 0 14px; }
+.bbva-form-actions { display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap; }
+.bbva-confirm-lead { font-size: 14.5px; font-weight: 700; margin: 0 0 16px; color: #1e293b; }
 .bbva-info-note {
-  background: #eef4ff; border: 1px solid #cdddff; color: #1d4ed8;
-  border-radius: 8px; padding: 10px 12px; font-size: 12.5px; margin: 16px 0;
+  background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af;
+  border-radius: 10px; padding: 12px 14px; font-size: 13px; margin: 16px 0;
+  font-weight: 500;
 }
 .bbva-cuota-box {
   display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
-  background: var(--hb-bg); border: 1px solid var(--hb-border);
-  border-radius: 10px; padding: 14px 16px; margin: 4px 0 16px;
+  background: #f8fafc; border: 1px solid #e2e8f0;
+  border-radius: 12px; padding: 14px 18px; margin: 4px 0 18px;
 }
-.bbva-cuota-box > span { color: var(--hb-muted); font-size: 13px; }
+.bbva-cuota-box > span { color: #475569; font-size: 13.5px; font-weight: 600; }
 .bbva-cuota-box .bbva-money-strong { margin-left: auto; font-size: 18px; }
 
 /* ---- Servicios (grid de empresas) ---- */
-.bbva-serv-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.bbva-serv-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 .bbva-serv {
-  display: flex; align-items: center; gap: 10px;
-  background: #fff; border: 1.5px solid var(--hb-border); border-radius: 10px;
-  padding: 11px 12px; cursor: pointer; text-align: left;
+  display: flex; align-items: center; gap: 12px;
+  background: #fff; border: 1.5px solid var(--hb-border); border-radius: 12px;
+  padding: 14px; cursor: pointer; text-align: left;
+  transition: all 0.2s ease;
 }
-.bbva-serv:hover { border-color: var(--hb-turquesa); }
-.bbva-serv.sel { border-color: var(--hb-red); background: var(--hb-red-light); }
-.bbva-serv-ico { width: 36px; height: 36px; border-radius: 9px; display: grid; place-items: center; flex-shrink: 0; }
-.bbva-serv span:last-child { display: flex; flex-direction: column; }
-.bbva-serv strong { font-size: 13px; }
+.bbva-serv:hover { border-color: #cbd5e1; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(148,163,184,0.05); }
+.bbva-serv.sel { border-color: #C31A1F; background: #fdf2f2; box-shadow: 0 4px 12px rgba(195,26,31,0.08); }
+.bbva-serv-ico { width: 38px; height: 38px; border-radius: 9px; display: grid; place-items: center; flex-shrink: 0; }
+.bbva-serv span:last-child { display: flex; flex-direction: column; gap: 2px; }
+.bbva-serv strong { font-size: 13.5px; color: #1e293b; }
 .bbva-serv small { color: var(--hb-muted); font-size: 11.5px; }
 
 /* ---- Comprobante ---- */
@@ -1207,10 +1222,124 @@ button {
 .bbva-comprobante-rows dd { margin: 0; font-size: 15px; font-weight: 600; }
 .bbva-comprobante-nota { margin: 16px 0 0; font-size: 12.5px; color: var(--hb-muted); }
 
-/* ---- Responsive app ---- */
+/* ============================================================
+   NUEVAS CLASES PREMIUM - BANCO DE LA NACIÓN
+   ============================================================ */
+
+/* ---- Steppers ---- */
+.bn-stepper { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; position: relative; }
+.bn-stepper-line { position: absolute; top: 18px; left: 0; right: 0; height: 3px; background: #e2e8f0; z-index: 1; }
+.bn-stepper-line-fill { position: absolute; top: 18px; left: 0; height: 3px; background: #C31A1F; transition: width 0.3s ease; z-index: 2; }
+.bn-step { display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 3; position: relative; flex: 1; }
+.bn-step-circle { width: 36px; height: 36px; border-radius: 50%; background: #ffffff; border: 3px solid #e2e8f0; display: grid; place-items: center; font-weight: 800; font-size: 13.5px; color: #64748b; transition: all 0.3s ease; }
+.bn-step.active .bn-step-circle { border-color: #C31A1F; color: #C31A1F; box-shadow: 0 0 12px rgba(195, 26, 31, 0.25); background: #fff; }
+.bn-step.completed .bn-step-circle { background: #C31A1F; border-color: #C31A1F; color: #ffffff; }
+.bn-step-label { font-size: 11.5px; font-weight: 700; color: #64748b; text-align: center; }
+.bn-step.active .bn-step-label { color: #C31A1F; }
+.bn-step.completed .bn-step-label { color: #1e293b; }
+
+/* ---- Constancia / Recibo de Pago ---- */
+.bn-receipt {
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 15px 35px -8px rgba(148, 163, 184, 0.15);
+  border: 1px solid #e2e8f0;
+  padding: 32px 24px;
+  position: relative;
+  max-width: 480px;
+  margin: 0 auto;
+  overflow: hidden;
+}
+.bn-receipt::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 6px;
+  background: var(--hb-franja);
+}
+.bn-receipt-header { text-align: center; border-bottom: 2px dashed #e2e8f0; padding-bottom: 20px; margin-bottom: 20px; position: relative; }
+.bn-receipt-header::before, .bn-receipt-header::after { content: ''; position: absolute; bottom: -10px; width: 18px; height: 18px; border-radius: 50%; background: #f8fafc; border: 1px solid #e2e8f0; z-index: 10; }
+.bn-receipt-header::before { left: -34px; }
+.bn-receipt-header::after { right: -34px; }
+.bn-receipt-success-icon { width: 60px; height: 60px; border-radius: 50%; background: #dcfce7; color: #16a34a; display: grid; place-items: center; margin: 0 auto 12px; box-shadow: 0 8px 20px rgba(22, 163, 74, 0.15); }
+.bn-receipt-amount { font-size: 30px; font-weight: 900; color: #1e293b; margin: 10px 0; font-family: 'Outfit', sans-serif; }
+.bn-receipt-rows { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+.bn-receipt-row { display: flex; justify-content: space-between; font-size: 13px; align-items: baseline; }
+.bn-receipt-row dt { color: #64748b; font-weight: 500; }
+.bn-receipt-row dd { color: #1e293b; font-weight: 700; margin: 0; text-align: right; }
+
+/* ---- Barras de progreso de Préstamos ---- */
+.bn-progress-container { margin: 14px 0 6px 0; }
+.bn-progress-labels { display: flex; justify-content: space-between; font-size: 11.5px; font-weight: 700; color: #64748b; margin-bottom: 6px; }
+.bn-progress-track { width: 100%; height: 8px; background: #e2e8f0; border-radius: 999px; overflow: hidden; }
+.bn-progress-fill { height: 100%; background: linear-gradient(90deg, #C31A1F 0%, #e52c31 100%); border-radius: 999px; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+
+/* ---- Buscador dinámico ---- */
+.bn-search-wrapper { position: relative; margin-bottom: 16px; }
+.bn-search-input { width: 100%; padding: 10px 14px 10px 38px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 13.5px; outline: none; transition: all 0.2s ease; font-family: inherit; }
+.bn-search-input:focus { border-color: #C31A1F; box-shadow: 0 0 0 3px rgba(195, 26, 31, 0.12); }
+.bn-search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; pointer-events: none; }
+
+/* ---- Tarjetas Físicas de Cuenta ---- */
+.bn-account-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 16px; }
+@media (max-width: 768px) {
+  .bn-account-grid { grid-template-columns: 1fr; }
+}
+.bn-card-phys {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 16px rgba(148, 163, 184, 0.06);
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 180px;
+}
+.bn-card-phys:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(148, 163, 184, 0.12);
+  border-color: #cbd5e1;
+}
+.bn-card-phys::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; bottom: 0; width: 6px;
+  background: linear-gradient(to bottom, #C31A1F, #9e1014);
+}
+.bn-card-phys-header { display: flex; justify-content: space-between; align-items: flex-start; }
+.bn-card-phys-title { display: flex; flex-direction: column; gap: 3px; }
+.bn-card-phys-title strong { font-size: 16px; color: #1e293b; letter-spacing: -0.2px; }
+.bn-card-phys-title small { font-size: 11.5px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+.bn-card-phys-badge { padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+.bn-card-phys-middle { margin: 18px 0; }
+.bn-card-phys-saldo-label { font-size: 11px; color: #94a3b8; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
+.bn-card-phys-saldo { font-size: 24px; font-weight: 900; color: #1e293b; font-family: 'Outfit', sans-serif; margin-top: 2px; }
+.bn-card-phys-footer { display: flex; justify-content: space-between; align-items: center; margin-top: auto; border-top: 1px solid #f1f5f9; padding-top: 12px; }
+.bn-card-phys-tea { font-size: 11.5px; color: #64748b; font-weight: 600; }
+.bn-card-phys-actions { display: flex; gap: 8px; }
+
+/* ---- Agrupación de Movimientos ---- */
+.bn-mov-group { margin-bottom: 24px; }
+.bn-mov-group:last-child { margin-bottom: 0; }
+.bn-mov-date-header { font-size: 11px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 12px; border-bottom: 1.5px solid #f1f5f9; padding-bottom: 6px; }
+.bn-mov-item { display: flex; align-items: center; gap: 14px; padding: 12px 14px; border: 1px solid #f8fafc; transition: all 0.2s; border-radius: 10px; background: #fff; margin-bottom: 8px; }
+.bn-mov-item:hover { border-color: #e2e8f0; background: #f8fafc; transform: translateX(3px); }
+.bn-mov-icon { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; flex-shrink: 0; font-size: 18px; }
+.bn-mov-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.bn-mov-info strong { font-size: 13.5px; color: #1e293b; font-weight: 700; }
+.bn-mov-info small { font-size: 11.5px; color: #64748b; font-weight: 500; }
+.bn-mov-amount { font-size: 14.5px; font-weight: 800; text-align: right; font-family: 'Outfit', sans-serif; }
+.bn-mov-amount.positive { color: #16a34a; }
+.bn-mov-amount.negative { color: #1e293b; }
+
+/* ---- Responsive app override ---- */
 @media (max-width: 900px) {
   .bbva-page { grid-template-columns: 1fr; }
-  .bbva-page-aside { position: static; }
+  .bbva-page-aside { display: none; }
   .bbva-kpis { grid-template-columns: 1fr; }
   .bbva-op-grid { grid-template-columns: 1fr; }
   .bbva-serv-grid { grid-template-columns: 1fr 1fr; }
@@ -1223,6 +1352,7 @@ button {
   .bbva-serv-grid { grid-template-columns: 1fr; }
   .bbva-tab { padding: 12px 14px; font-size: 13.5px; }
 }
+
 
 /* ============================================================
    ESTILOS PERSONALIZADOS BANCO GNB PERÚ (Según mockup)
@@ -1908,7 +2038,7 @@ button {
 
 .gnb-footer-green-bar {
   height: 4px;
-  background: #82bc00;
+  background: var(--hb-red);
 }
 .gnb-footer-bottom {
   background: #111111;

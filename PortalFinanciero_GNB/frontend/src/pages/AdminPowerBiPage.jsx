@@ -76,7 +76,7 @@ export default function AdminPowerBiPage() {
     <PageLayout>
       <div className="bbva-hello">
         <h1>Conectividad con Power BI</h1>
-        <p>Integra los datos del Banco GNB directamente en tus reportes de Power BI Desktop.</p>
+        <p>Integra los datos del Banco de la Nación directamente en tus reportes de Power BI Desktop.</p>
       </div>
 
       {/* Selector de método */}

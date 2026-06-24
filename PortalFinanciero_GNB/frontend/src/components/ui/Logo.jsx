@@ -1,89 +1,66 @@
 import React from 'react'
 
 /**
- * Logo oficial de Banco GNB Perú.
- * Presenta las letras "BANCO GNB" con la fuente y colores oficiales,
- * el isotipo del árbol verde y la palabra "PERÚ" debajo.
+ * Logo oficial de Banco de la Nación.
+ * Presenta el símbolo oficial (escarapela/cinta roja BN) y el texto correspondiente.
  *
  * @param {Object} props
  * @param {number}  [props.size=44]          Tamaño/escala del logotipo.
  * @param {string}  [props.variant='dark']   Variante de color ('dark' o 'light').
+ * @param {string}  [props.subtitle]         Subtítulo opcional para el encabezado (ej. Banca por Internet).
  */
-export default function Logo({ size = 44, variant = 'dark' }) {
+export default function Logo({ size = 44, variant = 'dark', subtitle }) {
   const scale = size / 44
   const isLight = variant === 'light'
   
-  const textColorBanco = isLight ? 'rgba(255, 255, 255, 0.9)' : '#5c5c5c'
-  const textColorGnb = isLight ? '#ffffff' : '#0a2e5c' // Azul GNB
-  const textColorPeru = isLight ? 'rgba(255, 255, 255, 0.75)' : '#7a7a7a'
+  const textColorBanco = isLight ? '#ffffff' : '#1f2937'
+  const textColorNacion = isLight ? '#ffffff' : '#C31A1F'
+  const textColorSub = isLight ? 'rgba(255, 255, 255, 0.8)' : '#64748b'
 
   return (
     <div 
       style={{ 
         display: 'inline-flex', 
-        flexDirection: 'column', 
-        alignItems: 'flex-start', 
-        lineHeight: 1,
-        fontFamily: '"Outfit", "Inter", "Segoe UI", sans-serif',
-        userSelect: 'none'
+        alignItems: 'center', 
+        gap: `${10 * scale}px`,
+        fontFamily: '"Outfit", "Inter", sans-serif',
+        userSelect: 'none',
+        textAlign: 'left'
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: `${6 * scale}px` }}>
-        <span 
-          style={{ 
-            fontWeight: 300, 
-            fontSize: `${22 * scale}px`, 
-            color: textColorBanco,
-            letterSpacing: '0.5px'
-          }}
-        >
-          BANCO
-        </span>
-        <span 
-          style={{ 
-            fontWeight: 800, 
-            fontSize: `${22 * scale}px`, 
-            color: textColorGnb,
-            letterSpacing: '0.5px',
-            marginRight: `${2 * scale}px`
-          }}
-        >
-          GNB
-        </span>
-        
-        {/* Isotipo: Árbol GNB verde */}
-        <svg
-          width={Math.round(24 * scale)}
-          height={Math.round(24 * scale)}
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          style={{ display: 'block', flexShrink: 0 }}
-        >
-          <rect width="24" height="24" rx="4" fill="#5cb813" />
-          {/* Silueta blanca del árbol */}
-          <path
-            d="M12 4C9.5 4 8.5 5.5 8.5 7C8.5 7.8 9 8.2 9 8.5C9 8.7 8.2 9 7.5 9C6 9 5 10.5 5 12C5 13.5 6.5 14.5 8 14.5C9 14.5 9.5 14 10 14.5C10.5 15 10.5 16 10.5 17.5C10.5 19 11.2 20 12 20C12.8 20 13.5 19 13.5 17.5C13.5 16 13.5 15 14 14.5C14.5 14 15 14.5 16 14.5C17.5 14.5 19 13.5 19 12C19 10.5 18 9 16.5 9C15.8 9 15 8.7 15 8.5C15 8.2 15.5 7.8 15.5 7C15.5 5.5 14.5 4 12 4Z"
-            fill="#ffffff"
-          />
-          <path d="M11.5 14.5H12.5V19.5H11.5V14.5Z" fill="#ffffff" />
-        </svg>
-      </div>
-      
-      <span 
-        style={{ 
-          fontWeight: 600, 
-          fontSize: `${9 * scale}px`, 
-          color: textColorPeru,
-          letterSpacing: `${4.5 * scale}px`,
-          paddingLeft: `${3 * scale}px`,
-          marginTop: `-${1 * scale}px`,
-          alignSelf: 'stretch',
-          textAlign: 'center'
-        }}
+      {/* Símbolo BN: Onda/Cinta Roja */}
+      <svg
+        width={Math.round(36 * scale)}
+        height={Math.round(36 * scale)}
+        viewBox="0 0 100 100"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        style={{ display: 'block', flexShrink: 0 }}
       >
-        PERÚ
-      </span>
+        <path
+          d="M20,80 C15,80 10,70 15,50 C25,25 50,15 70,15 C85,15 90,25 80,45 C65,70 40,85 20,80 Z"
+          fill="#C31A1F"
+        />
+        <path
+          d="M35,65 C40,45 60,30 75,30 C85,30 87,35 80,48 C70,68 50,80 35,65 Z"
+          fill={isLight ? '#e52c31' : '#ffffff'}
+          opacity="0.9"
+        />
+      </svg>
+      
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1.1 }}>
+        <span style={{ fontWeight: 800, fontSize: `${18 * scale}px`, color: textColorBanco, letterSpacing: '-0.3px' }}>
+          Banco
+        </span>
+        <span style={{ fontWeight: 500, fontSize: `${15 * scale}px`, color: textColorNacion, letterSpacing: '-0.2px' }}>
+          de la Nación
+        </span>
+        {subtitle && (
+          <span style={{ fontWeight: 600, fontSize: `${8.5 * scale}px`, color: textColorSub, letterSpacing: '0.5px', marginTop: `${3 * scale}px`, textTransform: 'uppercase' }}>
+            {subtitle}
+          </span>
+        )}
+      </div>
     </div>
   )
 }

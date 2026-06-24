@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import PrivateRoute from './components/layout/PrivateRoute.jsx'
 import Header from './components/layout/Header.jsx'
+import { useUI } from './context/UIContext.jsx'
 
 import LandingPage from './pages/LandingPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
@@ -19,12 +20,19 @@ import AdminClientesPage from './pages/AdminClientesPage.jsx'
 import AdminCreditosPage from './pages/AdminCreditosPage.jsx'
 import AdminPowerBiPage from './pages/AdminPowerBiPage.jsx'
 
-// Layout para las rutas autenticadas: cabecera BBVA + contenido.
+// Layout para las rutas autenticadas: cabecera Banco de la Nación + contenido con margen variable.
 function PrivateLayout({ children }) {
+  const { sidebarCollapsed } = useUI()
   return (
     <PrivateRoute>
       <Header />
-      <main className="bbva-main">
+      <main 
+        className="bbva-main"
+        style={{
+          marginLeft: sidebarCollapsed ? '70px' : '250px',
+          transition: 'margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+        }}
+      >
         <div className="bbva-container">{children}</div>
       </main>
     </PrivateRoute>
