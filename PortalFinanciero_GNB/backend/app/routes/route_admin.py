@@ -136,7 +136,26 @@ def simular_eod_capitalizar_gnb(conn: Connection = Depends(get_db)):
     return ctrl_eod_batch.capitalizar_ahorro_rolando(conn)
 
 
+@router.get("/solicitudes/{id}/detalle", summary="Ver detalle completo de solicitud y scoring")
+def detalle_solicitud(id: int, conn: Connection = Depends(get_db)):
+    """Retorna el detalle completo con la información de riesgo y score del cliente."""
+    try:
+        return repo_creditos.obtener_detalle_solicitud(conn, id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.post("/solicitudes/{id}/rechazar", summary="Rechazar una solicitud de crédito")
+def rechazar_solicitud(id: int, conn: Connection = Depends(get_db)):
+    """Cambia el estado de la solicitud a 'Rechazado'."""
+    try:
+        return repo_creditos.rechazar_solicitud(conn, id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 # ─── Endpoints Power BI (formato plano JSON) ──────────────────────────────────
+
 
 @router.get("/powerbi/clientes", summary="[Power BI] Clientes")
 def pb_clientes(conn: Connection = Depends(get_db)):

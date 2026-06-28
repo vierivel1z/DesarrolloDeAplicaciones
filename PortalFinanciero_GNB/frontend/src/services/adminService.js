@@ -54,6 +54,17 @@ export async function adminConfigurarParametros(payload, role = 'SUPERADMIN') {
   return data
 }
 
+export async function getAdminSolicitudDetalle(id) {
+  const { data } = await hbApi.get(`/admin/solicitudes/${id}/detalle`)
+  return data
+}
+
+export async function adminRechazarSolicitud(id) {
+  const { data } = await hbApi.post(`/admin/solicitudes/${id}/rechazar`)
+  return data
+}
+
+
 export async function adminBuscarClientes(q) {
   const { data } = await hbApi.get('/admin/clientes/buscar', { params: { q } })
   return data

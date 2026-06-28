@@ -472,3 +472,184 @@ def desembolsar_solicitud(conn: Connection, pksolicitud: int) -> dict:
 
     conn.commit()
     return {"mensaje": "Crédito desembolsado exitosamente", "pkcuentacredito": pkcuentacredito, "cuenta_transaccional": cod_cta_tec}
+
+
+def obtener_detalle_solicitud(conn: Connection, pksolicitud: int) -> dict:
+    """Retorna el detalle completo de una solicitud de crédito, incluyendo perfil de riesgo del cliente."""
+    # 1. Obtener la solicitud
+    sql_sol = text(
+        """
+        SELECT s.pksolicitud as id, s.codsolicitud, s.pkcliente,
+               s.montosolicitudcredito as monto, s.plazosolicitudcredito as plazo,
+               s.fechasolicitudcredito as fecha, s.tasainterescompensatoria as tea,
+               s.diafechafija as dia_pago, s.fechaaprobacioncredito as fecha_desembolso,
+               s.destiposolicitud, s.pksolicitudestado, e.dessolicitudestado as estado,
+               p.destipoproducto as producto_tipo, p.destiposubproducto as producto_subtipo,
+               s.pkactividadeconomicasolicitud as pkactividad
+        FROM dsolicitud s
+        JOIN dsolicitudestado e ON e.pksolicitudestado = s.pksolicitudestado
+        JOIN dproducto p ON p.pkproducto = s.pkproducto
+        WHERE s.pksolicitud = :pk
+        """
+    )
+    sol_row = conn.execute(sql_sol, {"pk": pksolicitud}).mappings().first()
+    if not sol_row:
+        raise ValueError("Solicitud no encontrada")
+        
+    sol = dict(sol_row)
+    pkcliente = sol["pkcliente"]
+
+    # 2. Obtener el cliente
+    sql_cli = text(
+        """
+        SELECT pkcliente, TRIM(codcliente) as codcliente, TRIM(nomcliente) as nombre,
+               numerodocumentoidentidad as nro_documento, email, numerotelefonopersonal as telefono,
+               montoingresoneto, pkactividadeconomica
+        FROM dcliente
+        WHERE pkcliente = :pkcliente
+        """
+    )
+    cli_row = conn.execute(sql_cli, {"pkcliente": pkcliente}).mappings().first()
+    if not cli_row:
+        raise ValueError("Cliente no encontrado")
+    cli = dict(cli_row)
+
+    # 3. Obtener actividad económica
+    sql_act = text("SELECT desactividadeconomica FROM dactividadeconomica WHERE pkactividadeconomica = :pk")
+    act_desc = conn.execute(sql_act, {"pk": sol["pkactividad"] or cli["pkactividadeconomica"]}).scalar()
+    cli["actividad_desc"] = act_desc or "No especificada"
+
+    # 4. Deuda total y calificación SBS
+    sql_deuda = text(
+        """
+        SELECT 
+            COALESCE(SUM(fa.montosaldocliente), 0) AS deuda_total,
+            MAX(fa.pkcalificacioncrediticiainterna) AS worst_cal_pk
+        FROM fagcuentacredito fa
+        WHERE fa.pkcliente = :pkcliente AND fa.periodomes = :periodo
+        """
+    )
+    deuda_row = conn.execute(sql_deuda, {"pkcliente": pkcliente, "periodo": PERIODO_CARTERA}).first()
+    deuda_total = float(deuda_row[0]) if deuda_row else 0.0
+    worst_cal_pk = deuda_row[1] if deuda_row else None
+
+    calificacion_desc = "Normal"
+    calificacion_code = "0"
+    if worst_cal_pk:
+        sql_cal = text(
+            """
+            SELECT codcalificacioncrediticia, descalificacioncrediticia
+            FROM dcalificacioncrediticia
+            WHERE pkcalificacioncrediticia = :pk
+            """
+        )
+        cal_row = conn.execute(sql_cal, {"pk": worst_cal_pk}).first()
+        if cal_row:
+            calificacion_code = cal_row[0].strip()
+            calificacion_desc = cal_row[1].strip()
+
+    # 5. Saldo total de ahorros
+    sql_ahorros = text(
+        """
+        SELECT COALESCE(SUM(f.montosaldocapitaltotal), 0) AS ahorros_total
+        FROM dcuentaahorro a
+        JOIN fcuentaahorro f ON f.pkcuentaahorro = a.pkcuentaahorro
+            AND f.periododia = (
+                SELECT MAX(f2.periododia) FROM fcuentaahorro f2
+                WHERE f2.pkcuentaahorro = a.pkcuentaahorro
+            )
+        WHERE a.pkcliente = :pkcliente
+        """
+    )
+    ahorros_total = float(conn.execute(sql_ahorros, {"pkcliente": pkcliente}).scalar() or 0.0)
+
+    # 6. Calcular Score de Crédito (300 - 850)
+    score = 600
+    
+    # Impacto de ingresos netos
+    ingreso = float(cli["montoingresoneto"] or 0.0)
+    if ingreso >= 5000:
+        score += 120
+    elif ingreso >= 3000:
+        score += 60
+    elif ingreso < 1500:
+        score -= 80
+
+    # Impacto de calificación SBS
+    if calificacion_code == "0":
+        score += 100
+    elif calificacion_code == "1":
+        score += 10
+    elif calificacion_code == "2":
+        score -= 100
+    elif calificacion_code == "3":
+        score -= 200
+    elif calificacion_code == "4":
+        score -= 300
+
+    # Impacto de ratio deuda vs ahorros
+    net_asset = ahorros_total - deuda_total
+    if net_asset >= 15000:
+        score += 80
+    elif net_asset >= 5000:
+        score += 40
+    elif net_asset < -15000:
+        score -= 100
+    elif net_asset < -5000:
+        score -= 50
+
+    # Limitar score entre 300 y 850
+    score = max(300, min(850, score))
+
+    # Determinar si es Consumo (CO) o Microempresa (ME)
+    sql_prod = text("SELECT TRIM(codtipocredito) FROM dproducto WHERE pkproducto = (SELECT pkproducto FROM dsolicitud WHERE pksolicitud = :pk)")
+    codtipocredito = conn.execute(sql_prod, {"pk": pksolicitud}).scalar()
+    if codtipocredito:
+        codtipocredito = codtipocredito.strip()
+    
+    # '03' es Consumo
+    is_consumo = codtipocredito == '03'
+    required_score = 620 if is_consumo else 580
+    
+    aprobado_por_score = score >= required_score
+    if aprobado_por_score:
+        evaluacion_sugerida = "Aprobación Recomendada"
+        color_evaluacion = "green"
+    else:
+        evaluacion_sugerida = "Riesgo Alto - Score Insuficiente"
+        color_evaluacion = "red"
+
+    return {
+        "solicitud": sol,
+        "cliente": cli,
+        "finanzas": {
+            "deuda_total": deuda_total,
+            "ahorros_total": ahorros_total,
+            "calificacion_sbs": calificacion_desc,
+            "calificacion_code": calificacion_code,
+        },
+        "scoring": {
+            "score": score,
+            "score_requerido": required_score,
+            "aprobado_por_score": aprobado_por_score,
+            "evaluacion_sugerida": evaluacion_sugerida,
+            "color_evaluacion": color_evaluacion,
+        }
+    }
+
+
+def rechazar_solicitud(conn: Connection, pksolicitud: int) -> dict:
+    """Cambia el estado de la solicitud a 'Rechazado'."""
+    pkestado_rechazado = conn.execute(
+        text("SELECT pksolicitudestado FROM dsolicitudestado WHERE codsolicitudestado='03'")
+    ).scalar()
+    if not pkestado_rechazado:
+        raise ValueError("Estado 'Rechazado' no encontrado en dsolicitudestado")
+        
+    conn.execute(
+        text("UPDATE dsolicitud SET pksolicitudestado = :est WHERE pksolicitud = :pk"),
+        {"est": pkestado_rechazado, "pk": pksolicitud}
+    )
+    conn.commit()
+    return {"mensaje": "Solicitud rechazada exitosamente", "pksolicitud": pksolicitud}
+

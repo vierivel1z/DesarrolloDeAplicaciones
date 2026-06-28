@@ -1,7 +1,18 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { FilePlus2, ArrowLeft, RefreshCw, CheckCircle, Play, FileText, CalendarDays } from 'lucide-react'
-import { getAdminSolicitudes, adminSolicitarCredito, adminEvaluarSolicitud, adminDesembolsarSolicitud, adminBuscarClientes, adminCrearCliente, adminEnviarOtp, adminConfigurarParametros } from '../services/adminService.js'
+import { 
+  getAdminSolicitudes, 
+  adminSolicitarCredito, 
+  adminEvaluarSolicitud, 
+  adminDesembolsarSolicitud, 
+  adminBuscarClientes, 
+  adminCrearCliente,
+  adminEnviarOtp, 
+  adminConfigurarParametros,
+  getAdminSolicitudDetalle,
+  adminRechazarSolicitud
+} from '../services/adminService.js'
 import { toNumber, formatDate } from '../utils/format.js'
 import PageLayout from '../components/layout/PageLayout.jsx'
 import Card from '../components/ui/Card.jsx'
@@ -474,6 +485,13 @@ function BandejaMaker() {
   const [solicitudes, setSolicitudes] = useState([])
   const [loading, setLoading] = useState(true)
 
+  // Modal / Detail states
+  const [selectedDetalle, setSelectedDetalle] = useState(null)
+  const [detalleLoading, setDetalleLoading] = useState(false)
+  const [modalOpen, setModalOpen] = useState(false)
+  const [rechazando, setRechazando] = useState(false)
+  const [desembolsando, setDesembolsando] = useState(false)
+
   const cargar = () => {
     setLoading(true)
     getAdminSolicitudes().then(data => setSolicitudes(data.filter(s => s.pksolicitudestado === 1))).finally(() => setLoading(false)) // 1: Creada
@@ -649,5 +667,3 @@ function BandejaSuperadmin() {
       </form>
     </Card>
   )
-}
-
