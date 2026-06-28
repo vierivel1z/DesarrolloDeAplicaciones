@@ -1,43 +1,58 @@
-"""Schemas pydantic para solicitud de crédito."""
+"""Schemas pydantic para solicitud de crédito y flujos GNB."""
 from decimal import Decimal
-from typing import Literal
+from typing import Literal, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, constr
 
 
-class SolicitudCreditoRequest(BaseModel):
-    montosolicitud: Decimal = Field(..., gt=0)
-    plazo: int = Field(..., gt=0, description="Número de cuotas / meses")
-    codtipocredito: Literal["ME", "CO", "FACIL", "LIBRE", "ESTANDAR", "CONVENIO", "YAPE"] = Field(..., description="Tipo de crédito")
-    codactividadeconomica: str
-    montoingresoneto: Decimal = Field(..., ge=0)
-    pkcliente: int | None = Field(None, description="PK del cliente (solo para admin/asesor)")
-    con_seguro: bool = Field(True, description="Indica si tiene seguro de desgravamen")
-    tipo_desgravamen: Literal["estandar", "rescate", "ninguno"] = "estandar"
-    fecha_desembolso: str | None = Field(None, description="Fecha de desembolso (YYYY-MM-DD), default hoy")
-    dia_pago: int | None = Field(None, ge=1, le=31, description="Día del mes para pago de cuotas")
+class SolicitudCreditoIn(BaseModel):
+    """Schema para solicitud inicial del cliente desde Homebanking."""
+    numero_documento: str = Field(..., description="DNI del cliente")
+    moneda: Literal["PEN", "USD"] = Field(..., description="PEN o USD")
+    monto: Decimal = Field(..., gt=0, description="Monto solicitado")
+    plazo: int = Field(..., gt=0, description="Plazo en meses")
+    archivo_sustento_url: str = Field(..., description="URL segura de Cloudinary")
+    codtipocredito: Literal["ME", "CO"] = Field("CO", description="Tipo de crédito")
+    codactividadeconomica: str = Field("0111", description="Código actividad económica")
+    ingreso_neto_mensual: Decimal = Field(..., ge=0, description="Ingreso declarado por el cliente")
 
+class EvaluarSolicitudIn(BaseModel):
+    """Schema para el MAKER."""
+    score_pd: Decimal = Field(..., ge=0, le=100, description="Probabilidad de Default (0-100)")
+    ingreso_neto_mensual: Decimal = Field(..., gt=0, description="Ingreso verificado por el analista")
+    comentarios_analista: str = Field(..., min_length=1, description="Comentarios de evaluación")
+
+class AprobarSolicitudIn(BaseModel):
+    """Schema para el CHECKER 1."""
+    tea_aprobada: Decimal = Field(..., gt=0, description="TEA asignada, debe estar en límites")
+
+class ValidarOtpIn(BaseModel):
+    """Schema para firma del cliente."""
+    codigo_otp: constr(min_length=6, max_length=6) = Field(..., description="Código OTP de 6 dígitos") # type: ignore
+
+class ConfigurarParametrosIn(BaseModel):
+    """Schema para el SUPERADMIN."""
+    monto_min_pen: Decimal = Field(..., gt=0)
+    monto_max_pen: Decimal = Field(..., gt=0)
+    monto_min_usd: Decimal = Field(..., gt=0)
+    monto_max_usd: Decimal = Field(..., gt=0)
+    tea_min: Decimal = Field(..., gt=0)
+    tea_max: Decimal = Field(..., gt=0)
 
 class SolicitudCreditoResponse(BaseModel):
     mensaje: str
     pksolicitud: int
     codsolicitud: str
     estado: str
-    montosolicitud: Decimal
+    monto: Decimal
     plazo: int
 
 class SimularCreditoRequest(BaseModel):
     monto: Decimal = Field(..., gt=0)
     tea: Decimal = Field(..., gt=0)
     plazo: int = Field(..., gt=0, description="Plazo en meses")
-    tipo_desgravamen: Literal["estandar", "rescate", "ninguno"] = "estandar"
-    seguro_vida_tranki: bool = False
-    es_convenio: bool = False
 
 class SimularCreditoResponse(BaseModel):
     monto_financiar: Decimal
     cuota_pura: Decimal
-    seguro_desgravamen: Decimal
-    comision_planilla: Decimal
-    itf: Decimal
     cuota_total: Decimal

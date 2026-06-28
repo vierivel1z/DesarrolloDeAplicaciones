@@ -30,7 +30,9 @@ SQL_FILES = [
     'Sql/05_DML_ahorros_2025_banco_andino.sql',
     'Sql/06_DML_metas_kpis_banco_andino.sql',
     'Sql/07_DDL_DML_mejoras_proyecto.sql',
-    'Sql/08_DML_crear_castor_perez.sql'
+    'Sql/08_DML_crear_castor_perez.sql',
+    'Sql/10_DDL_DML_creditos_gnb.sql',
+    'Sql/11_onboarding_gnb_cuentas.sql'
 ]
 
 def load_sql_file(file_path):

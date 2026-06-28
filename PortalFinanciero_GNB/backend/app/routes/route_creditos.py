@@ -1,47 +1,47 @@
-"""Router de créditos (solicitar). Exige get_cliente."""
-from fastapi import APIRouter, Depends
+"""Router de créditos: Flujo completo para clientes."""
+from fastapi import APIRouter, Depends, UploadFile, File
 from sqlalchemy.engine import Connection
 
-from app.controllers import ctrl_creditos
+from app.controllers import ctrl_creditos, ctrl_cloudinary
 from app.core.cfg_auth import get_cliente
 from app.core.cfg_database import get_db
 from app.schemas.sch_creditos import (
-    SolicitudCreditoRequest, 
+    SolicitudCreditoIn, 
     SolicitudCreditoResponse,
-    SimularCreditoRequest,
-    SimularCreditoResponse
+    ValidarOtpIn
 )
 
-router = APIRouter(prefix="/creditos", tags=["creditos"], dependencies=[Depends(get_cliente)])
+router = APIRouter(prefix="/creditos", tags=["creditos"])
+
+@router.post("/upload-documento")
+async def upload_documento(file: UploadFile = File(...)):
+    """Sube el documento a Cloudinary de manera libre o protegida."""
+    url = await ctrl_cloudinary.upload_documento_sustento(file)
+    return {"secure_url": url}
 
 
 @router.post("/solicitar", response_model=SolicitudCreditoResponse)
 def solicitar(
-    body: SolicitudCreditoRequest,
+    body: SolicitudCreditoIn,
     conn: Connection = Depends(get_db),
-    cliente: dict = Depends(get_cliente),
+    cliente: dict = Depends(get_cliente), # Exige JWT del cliente
 ):
     return ctrl_creditos.solicitar(
         conn,
-        cliente["pkcliente"],
-        body.montosolicitud,
-        body.plazo,
-        body.codtipocredito,
-        body.codactividadeconomica,
-        body.montoingresoneto,
-        body.con_seguro,
-        body.tipo_desgravamen,
-        body.fecha_desembolso,
-        body.dia_pago,
+        pkcliente=cliente["pkcliente"],
+        montosolicitud=body.monto,
+        plazo=body.plazo,
+        codtipocredito=body.codtipocredito,
+        codactividadeconomica=body.codactividadeconomica,
+        montoingresoneto=body.ingreso_neto_mensual,
+        archivo_sustento_url=body.archivo_sustento_url
     )
 
-@router.post("/simular", response_model=SimularCreditoResponse)
-def simular(body: SimularCreditoRequest):
-    return ctrl_creditos.simular_credito(
-        monto=body.monto,
-        tea=body.tea,
-        plazo=body.plazo,
-        tipo_desgravamen=body.tipo_desgravamen,
-        seguro_vida_tranki=body.seguro_vida_tranki,
-        es_convenio=body.es_convenio
-    )
+@router.post("/{id}/firmar-contrato")
+def firmar_contrato(
+    id: int,
+    body: ValidarOtpIn,
+    conn: Connection = Depends(get_db),
+    cliente: dict = Depends(get_cliente), # Exige JWT del cliente
+):
+    return ctrl_creditos.validar_otp(conn, id, body.codigo_otp)

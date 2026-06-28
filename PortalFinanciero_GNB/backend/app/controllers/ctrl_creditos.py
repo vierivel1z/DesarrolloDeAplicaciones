@@ -1,13 +1,10 @@
-"""Controlador de créditos: solicitar crédito (ME/CO)."""
-import json
+"""Controlador de créditos: Flujo completo GNB."""
 import math
 from decimal import Decimal
-
 from fastapi import HTTPException, status
 from sqlalchemy.engine import Connection
 
-from app.repositories import repo_creditos
-
+from app.repositories import repo_creditos, repo_parametros
 
 def solicitar(
     conn: Connection,
@@ -17,75 +14,18 @@ def solicitar(
     codtipocredito: str,
     codactividadeconomica: str,
     montoingresoneto: Decimal,
-    con_seguro: bool = True,
-    tipo_desgravamen: str = "estandar",
-    fecha_desembolso: str | None = None,
-    dia_pago: int | None = None,
+    archivo_sustento_url: str
 ) -> dict:
-    if codtipocredito not in repo_creditos.MAPA_TIPO_CREDITO:
+    
+    # Validar dinámicamente contra límites vigentes
+    parametros = repo_parametros.obtener_parametros(conn)
+    if montosolicitud < parametros["monto_min_pen"] or montosolicitud > parametros["monto_max_pen"]:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Tipo de crédito fuera de alcance (solo ME o CO)",
+            detail=f"Monto fuera de límites permitidos (S/ {parametros['monto_min_pen']} a S/ {parametros['monto_max_pen']})"
         )
+
     try:
-        # 1. Definir TEA Base según producto
-        tea_base = Decimal('43.92') # Default fallback
-        es_convenio = False
-        if codtipocredito == "FACIL":
-            tea_base = Decimal('8.99')
-        elif codtipocredito == "LIBRE":
-            tea_base = Decimal('10.50')
-        elif codtipocredito == "ESTANDAR":
-            tea_base = Decimal('13.00')
-        elif codtipocredito == "CONVENIO":
-            tea_base = Decimal('15.00')
-            es_convenio = True
-        elif codtipocredito == "YAPE":
-            tea_base = Decimal('29.00')
-            
-        # 2. Calcular P(Default) log-odds (Mock betas) para Scoring
-        b0, b_monto, b_ingreso, b_plazo = -2.5, 0.00005, -0.0001, 0.02
-        z = b0 + (float(montosolicitud) * b_monto) + (float(montoingresoneto) * b_ingreso) + (plazo * b_plazo)
-        try:
-            p_default = 1 / (1 + math.exp(-z))
-        except OverflowError:
-            p_default = 0.0 if z < 0 else 1.0
-            
-        p_porcentaje = round(p_default * 100, 2)
-        
-        # 3. Castigo de TEA basado en Scoring (si P_default es alto, se sube la TEA)
-        penalidad_riesgo = Decimal('0.00')
-        if p_porcentaje > 15.0:
-            penalidad_riesgo = Decimal('15.00')
-        elif p_porcentaje > 5.0:
-            penalidad_riesgo = Decimal('5.00')
-            
-        tea_final = tea_base + penalidad_riesgo
-        if not con_seguro:
-            tea_final += Decimal('3.00') # Si no lleva seguro tranki, se asume un aumento base por riesgo puro. (Aunque GNB exige desgravamen, esto es por si lo destilda).
-            
-        # 4. Simular para obtener cuota total con TEA Dinámica y el método francés
-        sim = simular_credito(montosolicitud, tea_final, plazo, tipo_desgravamen=tipo_desgravamen, seguro_vida_tranki=con_seguro, es_convenio=es_convenio)
-        
-        # 5. Calcular RDS
-        rds = (sim["cuota_total"] / montoingresoneto) * 100 if montoingresoneto > 0 else Decimal('100.0')
-        
-        semaforo = "Verde"
-        if rds > 40:
-            semaforo = "Rojo"
-        elif rds > 30:
-            semaforo = "Amarillo"
-            
-        evaluacion_dict = {
-            "tea_asignada": round(float(tea_final), 2),
-            "score_pd_porcentaje": p_porcentaje,
-            "rds_porcentaje": round(float(rds), 2),
-            "semaforo_rds": semaforo,
-            "aprobado_scoring": p_porcentaje < 15.0
-        }
-        
-        pknivelaprobacion = repo_creditos._pk_nivel_aprobacion(conn, montosolicitud)
-        
         res = repo_creditos.crear_solicitud(
             conn,
             pkcliente=pkcliente,
@@ -94,12 +34,8 @@ def solicitar(
             codtipocredito=codtipocredito,
             codactividadeconomica=codactividadeconomica,
             montoingresoneto=montoingresoneto,
-            con_seguro=con_seguro,
-            fecha_desembolso=fecha_desembolso,
-            dia_pago=dia_pago,
-            pknivelaprobacion=pknivelaprobacion,
-            desmotivosolicitud=json.dumps(evaluacion_dict),
-            tea_calculada=tea_final / 100
+            archivo_sustento_url=archivo_sustento_url,
+            con_seguro=True
         )
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
@@ -107,72 +43,78 @@ def solicitar(
     return {
         "mensaje": "Solicitud registrada (En Evaluación)",
         "estado": "En Evaluación",
-        "montosolicitud": montosolicitud,
+        "monto": montosolicitud,
         "plazo": plazo,
-        "evaluacion": evaluacion_dict,
         **res,
     }
 
-
-def simular_credito(
-    monto: Decimal,
-    tea: Decimal,
-    plazo: int,
-    tipo_desgravamen: str = "estandar",
-    seguro_vida_tranki: bool = False,
-    es_convenio: bool = False,
+def evaluar_credito(
+    conn: Connection, pksolicitud: int, score_pd: Decimal, ingreso_neto: Decimal, comentarios: str
 ) -> dict:
-    """
-    Simula la cuota mensual de un crédito bajo el método francés,
-    aplicando seguro de desgravamen, comisiones e ITF.
-    """
-    # Tasa efectiva mensual
-    tea_float = float(tea) / 100
-    im = (1 + tea_float) ** (30 / 360) - 1
-    im_dec = Decimal(str(im))
+    # 1. Obtener datos de la solicitud
+    sol = conn.execute(repo_creditos.text("SELECT * FROM dsolicitud WHERE pksolicitud = :pk"), {"pk": pksolicitud}).mappings().first()
+    if not sol:
+        raise HTTPException(status_code=404, detail="Solicitud no encontrada")
 
-    # Tasa de desgravamen
-    id_tasa = Decimal("0")
-    if tipo_desgravamen == "estandar":
-        id_tasa = Decimal("0.000738")  # 0.0738% mensual
-    elif tipo_desgravamen == "rescate":
-        id_tasa = Decimal("0.00175")   # 0.175% mensual
+    monto = sol["montosolicitudcredito"]
+    plazo = sol["plazosolicitudcredito"]
 
-    monto_financiar = Decimal(monto)
+    # Usamos una TEA referencial para la evaluación inicial si no tiene (ej. la mínima)
+    parametros = repo_parametros.obtener_parametros(conn)
+    tea_ref = parametros["tea_min"]
+
+    # Fórmulas
+    im = (1 + float(tea_ref)/100.0)**(30.0/360.0) - 1
     
-    # Seguro Vida Tranki
-    if seguro_vida_tranki:
-        t_vt = Decimal("0.0000148")  # 0.00148%
-        dias_totales = plazo * 30
-        prima_vt = monto_financiar * Decimal(dias_totales) * t_vt
-        monto_financiar += prima_vt
-
-    # Comisión por planilla
-    cp = Decimal("5.00") if es_convenio else Decimal("0.00")
-
-    # Cuota pura (Interés + Amortización)
     if im > 0 and plazo > 0:
-        factor = (1 + im) ** -plazo
-        cuota_pura_float = (float(monto_financiar) * im) / (1 - factor)
+        cuota_pura = (float(monto) * im) / (1 - (1 + im)**(-plazo))
     else:
-        cuota_pura_float = float(monto_financiar) / plazo if plazo > 0 else 0
+        cuota_pura = float(monto) / plazo
         
-    cuota_pura = Decimal(str(cuota_pura_float))
+    tasa_sd = 0.000738
+    tasa_itf = 0.00005
+    sd = float(monto) * tasa_sd
+    itf = (cuota_pura + sd) * tasa_itf
+    c = cuota_pura + sd + itf
 
-    # Seguro Desgravamen
-    sd = monto_financiar * id_tasa
+    dti = (c / float(ingreso_neto)) * 100
 
-    # Subtotal para calcular ITF
-    subtotal = cuota_pura + sd + cp
-    itf = subtotal * Decimal("0.00005")
+    if dti > 40.0:
+        raise HTTPException(status_code=400, detail="Rechazado: Capacidad de endeudamiento excedida")
 
-    cuota_total = subtotal + itf
+    repo_creditos.actualizar_evaluacion_solicitud(conn, pksolicitud, score_pd, Decimal(dti), comentarios)
 
     return {
-        "monto_financiar": round(monto_financiar, 2),
-        "cuota_pura": round(cuota_pura, 2),
-        "seguro_desgravamen": round(sd, 2),
-        "comision_planilla": round(cp, 2),
-        "itf": round(itf, 2),
-        "cuota_total": round(cuota_total, 2),
+        "mensaje": "Evaluación exitosa. Estado actualizado a EVALUADA_PENDIENTE_FIRMA",
+        "score_pd": score_pd,
+        "dti_ratio": round(dti, 2),
+        "cuota_estimada": round(c, 2)
     }
+
+def asignar_tea_y_otp(conn: Connection, pksolicitud: int, tea_aprobada: Decimal) -> dict:
+    parametros = repo_parametros.obtener_parametros(conn)
+    if tea_aprobada < parametros["tea_min"] or tea_aprobada > parametros["tea_max"]:
+         raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"TEA {tea_aprobada}% fuera del rango permitido ({parametros['tea_min']}% a {parametros['tea_max']}%)"
+        )
+
+    otp = repo_creditos.asignar_tea_y_otp(conn, pksolicitud, tea_aprobada)
+    return {
+        "mensaje": "TEA asignada y OTP generado",
+        "otp": otp, # En producción esto no se retorna, se enviaría por email
+        "estado": "ESPERANDO_FIRMA_CLIENTE"
+    }
+
+def validar_otp(conn: Connection, pksolicitud: int, otp_ingresado: str) -> dict:
+    ok = repo_creditos.validar_otp_cliente(conn, pksolicitud, otp_ingresado)
+    if not ok:
+        raise HTTPException(status_code=400, detail="OTP incorrecto")
+    return {"mensaje": "Contrato firmado exitosamente", "estado": "APROBADO_LISTO_DESEMBOLSO"}
+
+def desembolsar(conn: Connection, pksolicitud: int) -> dict:
+    try:
+        res = repo_creditos.desembolsar_solicitud(conn, pksolicitud)
+        return res
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))

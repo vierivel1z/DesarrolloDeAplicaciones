@@ -26,13 +26,31 @@ export async function adminSolicitarCredito(payload) {
   return data
 }
 
-export async function adminEvaluarSolicitud(id) {
-  const { data } = await hbApi.post(`/admin/solicitudes/${id}/evaluar`)
+export async function adminEvaluarSolicitud(id, payload, role = 'MAKER') {
+  const { data } = await hbApi.post(`/admin/creditos/${id}/evaluar`, payload, {
+    headers: { 'X-User-Role': role }
+  })
   return data
 }
 
-export async function adminDesembolsarSolicitud(id) {
-  const { data } = await hbApi.post(`/admin/solicitudes/${id}/desembolsar`)
+export async function adminEnviarOtp(id, payload, role = 'CHECKER_1') {
+  const { data } = await hbApi.post(`/admin/creditos/${id}/enviar-otp`, payload, {
+    headers: { 'X-User-Role': role }
+  })
+  return data
+}
+
+export async function adminDesembolsarSolicitud(id, role = 'CHECKER_2') {
+  const { data } = await hbApi.post(`/admin/creditos/${id}/desembolsar`, {}, {
+    headers: { 'X-User-Role': role }
+  })
+  return data
+}
+
+export async function adminConfigurarParametros(payload, role = 'SUPERADMIN') {
+  const { data } = await hbApi.put(`/admin/creditos/parametros`, payload, {
+    headers: { 'X-User-Role': role }
+  })
   return data
 }
 

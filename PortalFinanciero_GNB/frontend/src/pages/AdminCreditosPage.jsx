@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { FilePlus2, ArrowLeft, RefreshCw, CheckCircle, Play, FileText, CalendarDays } from 'lucide-react'
-import { getAdminSolicitudes, adminSolicitarCredito, adminEvaluarSolicitud, adminDesembolsarSolicitud, adminBuscarClientes, adminCrearCliente } from '../services/adminService.js'
+import { getAdminSolicitudes, adminSolicitarCredito, adminEvaluarSolicitud, adminDesembolsarSolicitud, adminBuscarClientes, adminCrearCliente, adminEnviarOtp, adminConfigurarParametros } from '../services/adminService.js'
 import { toNumber, formatDate } from '../utils/format.js'
 import PageLayout from '../components/layout/PageLayout.jsx'
 import Card from '../components/ui/Card.jsx'
@@ -431,125 +431,223 @@ function AdminSolicitarCreditoForm() {
 
 function AdminCreditosList() {
   const navigate = useNavigate()
+  const [tab, setTab] = useState('MAKER')
+
+  return (
+    <PageLayout>
+      <div className="bbva-page-head">
+        <div>
+          <h1 className="bbva-page-title">Gestión de Créditos y Riesgos</h1>
+          <p className="bbva-page-sub">Bandejas de Evaluación, Aprobación y Desembolso</p>
+        </div>
+        <div className="bbva-page-actions" style={{ display: 'flex', gap: '8px' }}>
+          <button className="bbva-btn" onClick={() => navigate('/admin/creditos?action=solicitar')}>
+            <FilePlus2 size={14} /> Registrar Solicitud
+          </button>
+        </div>
+      </div>
+
+      <div className="admin-filter-btns" style={{ marginBottom: 20 }}>
+        <button type="button" className={`admin-filter-btn ${tab === 'MAKER' ? 'active' : ''}`} onClick={() => setTab('MAKER')}>
+          1. MAKER (Analista)
+        </button>
+        <button type="button" className={`admin-filter-btn ${tab === 'CHECKER1' ? 'active' : ''}`} onClick={() => setTab('CHECKER1')}>
+          2. CHECKER 1 (Gerente)
+        </button>
+        <button type="button" className={`admin-filter-btn ${tab === 'CHECKER2' ? 'active' : ''}`} onClick={() => setTab('CHECKER2')}>
+          3. CHECKER 2 (Operaciones)
+        </button>
+        <button type="button" className={`admin-filter-btn ${tab === 'SUPERADMIN' ? 'active' : ''}`} onClick={() => setTab('SUPERADMIN')}>
+          ⚙ SUPERADMIN
+        </button>
+      </div>
+
+      {tab === 'MAKER' && <BandejaMaker />}
+      {tab === 'CHECKER1' && <BandejaChecker1 />}
+      {tab === 'CHECKER2' && <BandejaChecker2 />}
+      {tab === 'SUPERADMIN' && <BandejaSuperadmin />}
+    </PageLayout>
+  )
+}
+
+function BandejaMaker() {
   const [solicitudes, setSolicitudes] = useState([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [cronograma, setCronograma] = useState(null)
-  const [evaluando, setEvaluando] = useState(null)
 
   const cargar = () => {
     setLoading(true)
-    getAdminSolicitudes()
-      .then(setSolicitudes)
-      .catch((e) => setError('Error al cargar solicitudes'))
-      .finally(() => setLoading(false))
+    getAdminSolicitudes().then(data => setSolicitudes(data.filter(s => s.pksolicitudestado === 1))).finally(() => setLoading(false)) // 1: Creada
   }
-
-  useEffect(() => {
-    cargar()
-  }, [])
+  useEffect(() => { cargar() }, [])
 
   const handleEvaluar = async (id) => {
-    try {
-      setEvaluando(id)
-      const res = await adminEvaluarSolicitud(id)
-      setCronograma({ id, cuotas: res.cronograma, total: res.monto_total })
-      cargar()
-    } catch (e) {
-      alert('Error evaluando: ' + (e.response?.data?.detail || e.message))
-    } finally {
-      setEvaluando(null)
-    }
-  }
+    const score = prompt('Ingrese Score PD (0-100%):', '12.5')
+    if (!score) return
+    const ingreso = prompt('Ingrese Ingreso Neto Verificado (S/):', '3500')
+    if (!ingreso) return
+    const comentarios = prompt('Comentarios del analista:')
+    if (!comentarios) return
 
-  const handleDesembolsar = async (id) => {
-    if (!confirm('¿Seguro de desembolsar esta solicitud? Se abonará el monto a la cuenta de ahorros.')) return
     try {
-      setLoading(true)
-      await adminDesembolsarSolicitud(id)
-      alert('Desembolso exitoso')
+      await adminEvaluarSolicitud(id, {
+        score_pd: parseFloat(score),
+        ingreso_neto_mensual: parseFloat(ingreso),
+        comentarios_analista: comentarios
+      }, 'MAKER')
+      alert('Evaluación guardada exitosamente')
       cargar()
     } catch (e) {
-      alert('Error desembolsando: ' + (e.response?.data?.detail || e.message))
-    } finally {
-      setLoading(false)
+      alert('Error: ' + (e.response?.data?.detail || e.message))
     }
   }
 
   const cols = [
     { key: 'codsolicitud', header: 'Solicitud' },
     { key: 'nomcliente', header: 'Cliente' },
-    { key: 'monto', header: 'Monto', align: 'right', render: (s) => <Money value={s.monto} /> },
-    { key: 'plazo', header: 'Plazo', align: 'center', render: (s) => `${s.plazo}m` },
-    { key: 'estado', header: 'Estado', render: (s) => <Badge estado={s.estado} /> },
-    { key: 'evaluacion', header: 'Evaluación (Scoring/RDS)', render: (s) => {
-      if (!s.desmotivosolicitud) return '-';
-      try {
-        const ev = JSON.parse(s.desmotivosolicitud);
-        const colorRDS = ev.semaforo_rds === 'Rojo' ? 'red' : (ev.semaforo_rds === 'Amarillo' ? 'amber' : 'green');
-        const colorScore = ev.aprobado_scoring ? 'green' : 'red';
-        return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.8rem' }}>
-            <div><Badge estado={`PD: ${ev.score_pd_porcentaje}%`} tone={colorScore} /></div>
-            <div><Badge estado={`RDS: ${ev.rds_porcentaje}%`} tone={colorRDS} /></div>
-          </div>
-        );
-      } catch (e) {
-        return <span style={{ fontSize: '0.8rem' }}>{s.desmotivosolicitud}</span>;
-      }
-    }},
+    { key: 'monto', header: 'Monto', render: (s) => <Money value={s.monto} /> },
+    { key: 'archivo', header: 'Sustento', render: (s) => s.archivo_sustento_path ? <a href={s.archivo_sustento_path} target="_blank" rel="noreferrer">Ver PDF</a> : 'N/A' },
     { key: 'acciones', header: 'Acciones', render: (s) => (
-      <div style={{ display: 'flex', gap: '8px' }}>
-        {s.pksolicitudestado === 1 && (
-          <button className="bbva-btn-ghost" style={{ padding: '4px 8px', fontSize: '0.8rem' }} onClick={() => handleEvaluar(s.id)} disabled={evaluando === s.id}>
-            <Play size={14} /> Evaluar
-          </button>
-        )}
-        {s.pksolicitudestado === 2 && (
-          <button className="bbva-btn" style={{ padding: '4px 8px', fontSize: '0.8rem' }} onClick={() => handleDesembolsar(s.id)}>
-            <CheckCircle size={14} /> Desembolsar
-          </button>
-        )}
-      </div>
-    )},
-  ]
-
-  const cronoCols = [
-    { key: 'nro', header: 'N°', render: (c) => c.nrocuota },
-    { key: 'fecha', header: 'Vencimiento', render: (c) => formatDate(c.fecha_vencimiento) },
-    { key: 'cuota', header: 'Cuota', align: 'right', render: (c) => <Money value={c.monto_cuota} /> },
-    { key: 'capital', header: 'Capital', align: 'right', render: (c) => <Money value={c.capital} /> },
-    { key: 'interes', header: 'Interés', align: 'right', render: (c) => <Money value={c.interes} /> },
-    { key: 'saldo', header: 'Saldo Cap', align: 'right', render: (c) => <Money value={c.saldo_capital} /> },
+      <button className="bbva-btn-ghost sm" onClick={() => handleEvaluar(s.id)}>Evaluar (Maker)</button>
+    )}
   ]
 
   return (
-    <PageLayout>
-      <div className="bbva-page-head">
-        <div>
-          <h1 className="bbva-page-title">Gestión de Créditos</h1>
-          <p className="bbva-page-sub">Listado y evaluación de solicitudes</p>
-        </div>
-        <div className="bbva-page-actions" style={{ display: 'flex', gap: '8px' }}>
-          <button className="bbva-btn" onClick={() => navigate('/admin/creditos?action=solicitar')}>
-            <FilePlus2 size={14} /> Registrar Solicitud
-          </button>
-          <button className="bbva-btn-ghost" onClick={cargar} disabled={loading}><RefreshCw size={14} /> Actualizar</button>
-        </div>
-      </div>
-
-      <Card>
-        {error && <Alert tipo="error">{error}</Alert>}
-        {loading && solicitudes.length === 0 ? <Loader text="Cargando solicitudes..." /> : (
-          <Tabla columns={cols} rows={solicitudes} rowKey={(row) => row.id} emptyText="No hay solicitudes" />
-        )}
-      </Card>
-
-      {cronograma && (
-        <Card title={`Cronograma Generado (Solicitud ID ${cronograma.id})`} icon={<CalendarDays size={18} />} style={{ marginTop: '20px' }}>
-          <Tabla columns={cronoCols} rows={cronograma.cuotas} rowKey={(row) => row.nrocuota} />
-        </Card>
-      )}
-    </PageLayout>
+    <Card title="Bandeja Maker - Análisis de Solicitudes Nuevas">
+      {loading ? <Loader /> : <Tabla columns={cols} rows={solicitudes} rowKey={(row) => row.id} emptyText="No hay solicitudes pendientes de evaluación" />}
+    </Card>
   )
 }
+
+function BandejaChecker1() {
+  const [solicitudes, setSolicitudes] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  const cargar = () => {
+    setLoading(true)
+    // 2: EVALUADA_PENDIENTE_FIRMA (asumiendo que en DB es EV)
+    // Buscamos las que ya tienen DTI y Score
+    getAdminSolicitudes().then(data => setSolicitudes(data.filter(s => s.score_pd !== null && !s.otp_codigo))).finally(() => setLoading(false))
+  }
+  useEffect(() => { cargar() }, [])
+
+  const handleAprobar = async (id) => {
+    const tea = prompt('Asignar TEA Definitiva (%):', '19.99')
+    if (!tea) return
+
+    try {
+      await adminEnviarOtp(id, { tea_aprobada: parseFloat(tea) }, 'CHECKER_1')
+      alert('TEA asignada y OTP enviado al cliente exitosamente')
+      cargar()
+    } catch (e) {
+      alert('Error: ' + (e.response?.data?.detail || e.message))
+    }
+  }
+
+  const cols = [
+    { key: 'codsolicitud', header: 'Solicitud' },
+    { key: 'nomcliente', header: 'Cliente' },
+    { key: 'monto', header: 'Monto', render: (s) => <Money value={s.monto} /> },
+    { key: 'dti', header: 'DTI', render: (s) => `${s.dti_ratio}%` },
+    { key: 'score', header: 'Score PD', render: (s) => `${s.score_pd}%` },
+    { key: 'acciones', header: 'Acciones', render: (s) => (
+      <button className="bbva-btn sm" onClick={() => handleAprobar(s.id)}>Aprobar TEA y Enviar OTP</button>
+    )}
+  ]
+
+  return (
+    <Card title="Bandeja Checker 1 - Aprobación y Tasas">
+      {loading ? <Loader /> : <Tabla columns={cols} rows={solicitudes} rowKey={(row) => row.id} emptyText="No hay solicitudes por aprobar" />}
+    </Card>
+  )
+}
+
+function BandejaChecker2() {
+  const [solicitudes, setSolicitudes] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  const cargar = () => {
+    setLoading(true)
+    // Buscamos las que están APROBADO_LISTO_DESEMBOLSO (AL) - asumiendo que el cliente ya firmó.
+    // Filtrar aquellas que tienen OTP pero el estado aún no es 03 (Desembolsado)
+    getAdminSolicitudes().then(data => setSolicitudes(data.filter(s => s.estado === 'APROBADO_LISTO_DESEMBOLSO'))).finally(() => setLoading(false))
+  }
+  useEffect(() => { cargar() }, [])
+
+  const handleDesembolsar = async (id) => {
+    if (!confirm('¿Confirma la transacción atómica de desembolso para esta solicitud?')) return
+    try {
+      await adminDesembolsarSolicitud(id, 'CHECKER_2')
+      alert('Desembolso atómico exitoso. Cuenta Transaccional creada y Foperaciones registrado.')
+      cargar()
+    } catch (e) {
+      alert('Error: ' + (e.response?.data?.detail || e.message))
+    }
+  }
+
+  const cols = [
+    { key: 'codsolicitud', header: 'Solicitud' },
+    { key: 'nomcliente', header: 'Cliente' },
+    { key: 'monto', header: 'Monto', render: (s) => <Money value={s.monto} /> },
+    { key: 'tea', header: 'TEA Aprobada', render: (s) => `${s.tea}%` },
+    { key: 'estado', header: 'Firma Cliente', render: (s) => <Badge estado="FIRMADO (OTP VALIDADO)" tone="green" /> },
+    { key: 'acciones', header: 'Acciones', render: (s) => (
+      <button className="bbva-btn sm" onClick={() => handleDesembolsar(s.id)}>Ejecutar Desembolso</button>
+    )}
+  ]
+
+  return (
+    <Card title="Bandeja Checker 2 - Operaciones (Desembolsos)">
+      {loading ? <Loader /> : <Tabla columns={cols} rows={solicitudes} rowKey={(row) => row.id} emptyText="No hay créditos listos para desembolso" />}
+    </Card>
+  )
+}
+
+function BandejaSuperadmin() {
+  const [form, setForm] = useState({
+    monto_min_pen: 1500,
+    monto_max_pen: 80000,
+    monto_min_usd: 500,
+    monto_max_usd: 25000,
+    tea_min: 13.00,
+    tea_max: 36.00
+  })
+
+  const handleGuardar = async (e) => {
+    e.preventDefault()
+    try {
+      await adminConfigurarParametros(form, 'SUPERADMIN')
+      alert('Parámetros globales actualizados correctamente.')
+    } catch (e) {
+      alert('Error: ' + (e.response?.data?.detail || e.message))
+    }
+  }
+
+  return (
+    <Card title="Configuración Global de Créditos">
+      <form onSubmit={handleGuardar}>
+        <div className="hb-grid-2">
+          <div className="hb-field">
+            <label>Monto Mínimo (PEN)</label>
+            <input type="number" step="0.01" className="hb-input" value={form.monto_min_pen} onChange={e => setForm({...form, monto_min_pen: parseFloat(e.target.value)})} />
+          </div>
+          <div className="hb-field">
+            <label>Monto Máximo (PEN)</label>
+            <input type="number" step="0.01" className="hb-input" value={form.monto_max_pen} onChange={e => setForm({...form, monto_max_pen: parseFloat(e.target.value)})} />
+          </div>
+        </div>
+        <div className="hb-grid-2">
+          <div className="hb-field">
+            <label>TEA Mínima (%)</label>
+            <input type="number" step="0.01" className="hb-input" value={form.tea_min} onChange={e => setForm({...form, tea_min: parseFloat(e.target.value)})} />
+          </div>
+          <div className="hb-field">
+            <label>TEA Máxima (%)</label>
+            <input type="number" step="0.01" className="hb-input" value={form.tea_max} onChange={e => setForm({...form, tea_max: parseFloat(e.target.value)})} />
+          </div>
+        </div>
+        <button type="submit" className="bbva-btn" style={{marginTop: 10}}>Guardar Parámetros</button>
+      </form>
+    </Card>
+  )
+}
+

@@ -289,10 +289,12 @@ def buscar_clientes_por_query(conn: Connection, q: str) -> list:
     return [dict(r) for r in rows]
 
 
+import random
+import uuid
 from app.core.cfg_security import hashear_password
 
 def crear_cliente_ventanilla(conn: Connection, req) -> dict:
-    """Registra un nuevo cliente, cuenta de ahorros, y credenciales de Homebanking."""
+    """Registra un nuevo cliente, cuenta de ahorros, y credenciales de Homebanking en estado PENDIENTE."""
     # 1. Verificar existencia
     dup = conn.execute(text("""
         SELECT 1 FROM dcliente 
@@ -357,7 +359,7 @@ def crear_cliente_ventanilla(conn: Connection, req) -> dict:
         "pkubi": pkubi, "pkpais": pkpais
     }).scalar()
 
-    # 5. Generar siguiente cuenta de ahorros
+    # 5. Generar cuenta GNB (11 dígitos correlativo/aleatorio) y CCI (20 dígitos)
     max_aho = conn.execute(text("SELECT MAX(TRIM(codcuentaahorro)) FROM dcuentaahorro WHERE codcuentaahorro LIKE 'AHO%'")).scalar()
     if max_aho:
         num_part = int(max_aho[3:])
@@ -365,15 +367,32 @@ def crear_cliente_ventanilla(conn: Connection, req) -> dict:
     else:
         next_num = 802
     codcuenta = f"AHO{next_num:06d}"
+    
+    # Nuevo requerimiento GNB: 11 digitos de cuenta real
+    nro_cuenta_11_dig = f"530{random.randint(10000000, 99999999)}"
+    # 053 (Banco) + 001 (Oficina) + 0 (Relleno) + 11 (Cuenta) + 00 (Control) = 20 dígitos
+    cci_20_dig = f"0530010{nro_cuenta_11_dig}00"
+    tipo_cuenta = getattr(req, "tipo_cuenta", "AHORRO_ROLANDO")
 
     conn.execute(text("""
-        INSERT INTO dcuentaahorro (codcuentaahorro, pkcliente, fecultactualizacion)
-        VALUES (:cod, :pkc, NOW())
-    """), {"cod": codcuenta, "pkc": pkcliente})
+        INSERT INTO dcuentaahorro (codcuentaahorro, pkcliente, nro_cuenta, cci, tipo_cuenta, fecultactualizacion)
+        VALUES (:cod, :pkc, :nro_cuenta, :cci, :tipo_cuenta, NOW())
+    """), {
+        "cod": codcuenta, 
+        "pkc": pkcliente,
+        "nro_cuenta": nro_cuenta_11_dig,
+        "cci": cci_20_dig,
+        "tipo_cuenta": tipo_cuenta
+    })
 
     pkcuenta = conn.execute(text("SELECT pkcuentaahorro FROM dcuentaahorro WHERE codcuentaahorro = :cod"), {"cod": codcuenta}).scalar()
 
-    # 6. Insertar fcuentaahorro (con saldo 0.00) copiando de la cuenta 1 en 20251231
+    # Obtener el pktipocuentaahorro correspondiente
+    pktipocuenta = conn.execute(text(
+        "SELECT pktipocuentaahorro FROM dtipocuentaahorro WHERE destipocuentaahorro = :tipo LIMIT 1"
+    ), {"tipo": tipo_cuenta}).scalar() or 1
+
+    # 6. Insertar fcuentaahorro (con saldo 0.00) copiando estructura
     conn.execute(text("""
         INSERT INTO fcuentaahorro (
             periododia, pkcuentaahorro, pkproductoahorro, pkmoneda, pktipocuentaahorro, pktipotasaahorro, 
@@ -389,7 +408,7 @@ def crear_cliente_ventanilla(conn: Connection, req) -> dict:
         )
         SELECT 
             20251231, :pkcuenta, 
-            pkproductoahorro, pkmoneda, pktipocuentaahorro, pktipotasaahorro, 
+            pkproductoahorro, pkmoneda, :pktipocuenta, pktipotasaahorro, 
             :pkcliente, pkauxiliar, pkoperador, pkagencia, pkestadocuenta, tipocambio, 
             0.00, 0.00, 0.00, CURRENT_DATE, 
             0.00, tasainterescuenta, tasaefectivaanual, nrotitulares, nrofirmas, 
@@ -401,16 +420,28 @@ def crear_cliente_ventanilla(conn: Connection, req) -> dict:
             'N', 0.00, 0.00, 0, 0.00, NULL, NOW()
         FROM fcuentaahorro
         WHERE pkcuentaahorro = 1 AND periododia = 20251231
-    """), {"pkcuenta": pkcuenta, "pkcliente": pkcliente})
+    """), {"pkcuenta": pkcuenta, "pkcliente": pkcliente, "pktipocuenta": pktipocuenta})
 
-    # 7. Crear credenciales de Homebanking con clave por defecto "demo1234"
-    password_hash = hashear_password("demo1234")
-    username = codcliente.lower()
+    # 7. Crear credenciales de Homebanking en estado PENDIENTE_ACTIVACION
+    codigo_invitacion = str(uuid.uuid4())
+    pin_sms = str(random.randint(1000, 9999))
+    username_temp = f"pend_{codcliente.lower()}"
     
     conn.execute(text("""
-        INSERT INTO usuarios_homebanking (pkcliente, username, password_hash, activo, bloqueado)
-        VALUES (:pkc, :username, :hash, 'S', 'N')
-    """), {"pkc": pkcliente, "username": username, "hash": password_hash})
+        INSERT INTO usuarios_homebanking (
+            pkcliente, username, password_hash, activo, bloqueado, 
+            estado_registro, codigo_invitacion, pin_sms
+        )
+        VALUES (
+            :pkc, :username, '', 'N', 'N', 
+            'PENDIENTE_ACTIVACION', :invitacion, :pin
+        )
+    """), {
+        "pkc": pkcliente, 
+        "username": username_temp, 
+        "invitacion": codigo_invitacion, 
+        "pin": pin_sms
+    })
 
     conn.commit()
 
@@ -420,6 +451,10 @@ def crear_cliente_ventanilla(conn: Connection, req) -> dict:
         "nombre": req.nomcliente,
         "nro_documento": req.numerodocumentoidentidad,
         "email": req.email,
-        "cuenta_ahorro": codcuenta
+        "cuenta_ahorro": codcuenta,
+        "nro_cuenta": nro_cuenta_11_dig,
+        "cci": cci_20_dig,
+        "codigo_invitacion": codigo_invitacion,
+        "mensaje": "Alta exitosa. Se requiere enrolamiento digital."
     }
 

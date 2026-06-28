@@ -4,6 +4,7 @@ import Header from './components/layout/Header.jsx'
 
 import LandingPage from './pages/LandingPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
+import RegistroDigitalPage from './pages/RegistroDigitalPage.jsx'
 import CuentasPublicPage from './pages/CuentasPublicPage.jsx'
 import HomePage from './pages/HomePage.jsx'
 import CuentasAhorroPage from './pages/CuentasAhorroPage.jsx'
@@ -16,6 +17,7 @@ import PagoCreditoPage from './pages/PagoCreditoPage.jsx'
 import PagoServiciosPage from './pages/PagoServiciosPage.jsx'
 import SolicitarCreditoPage from './pages/SolicitarCreditoPage.jsx'
 import AdminClientesPage from './pages/AdminClientesPage.jsx'
+import AltaClientePage from './pages/AltaClientePage.jsx'
 import AdminCreditosPage from './pages/AdminCreditosPage.jsx'
 import AdminPowerBiPage from './pages/AdminPowerBiPage.jsx'
 import AdminMoraPage from './pages/AdminMoraPage.jsx'
@@ -38,6 +40,7 @@ export default function App() {
       {/* Públicas */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/registrate" element={<RegistroDigitalPage />} />
       <Route path="/cuentas" element={<CuentasPublicPage />} />
 
       {/* Privadas */}
@@ -56,6 +59,7 @@ export default function App() {
 
       {/* Rutas de Administrador */}
       <Route path="/admin/clientes" element={<PrivateLayout><AdminClientesPage /></PrivateLayout>} />
+      <Route path="/admin/clientes/alta" element={<PrivateLayout><AltaClientePage /></PrivateLayout>} />
       <Route path="/admin/creditos" element={<PrivateLayout><AdminCreditosPage /></PrivateLayout>} />
       <Route path="/admin/mora" element={<PrivateLayout><AdminMoraPage /></PrivateLayout>} />
       <Route path="/admin/powerbi" element={<PrivateLayout><AdminPowerBiPage /></PrivateLayout>} />

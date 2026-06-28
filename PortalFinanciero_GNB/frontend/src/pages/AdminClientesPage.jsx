@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Users, Search, UserCheck, UserX, PiggyBank, CreditCard, ChevronRight } from 'lucide-react'
+import { Users, Search, UserCheck, UserX, PiggyBank, CreditCard, ChevronRight, UserPlus } from 'lucide-react'
 import { getAdminClientes } from '../services/adminService.js'
 import PageLayout from '../components/layout/PageLayout.jsx'
 import Card from '../components/ui/Card.jsx'
@@ -45,9 +45,14 @@ export default function AdminClientesPage() {
 
   return (
     <PageLayout>
-      <div className="bbva-hello">
-        <h1>Gestión de Clientes</h1>
-        <p>Directorio completo de clientes del Banco GNB con sus productos asociados.</p>
+      <div className="bbva-hello" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h1>Gestión de Clientes</h1>
+          <p>Directorio completo de clientes del Banco GNB con sus productos asociados.</p>
+        </div>
+        <button className="bbva-btn bbva-btn--primary" onClick={() => navigate('/admin/clientes/alta')}>
+          <UserPlus size={16} /> Nuevo Cliente
+        </button>
       </div>
 
       {/* KPIs de resumen */}
