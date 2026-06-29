@@ -214,7 +214,9 @@ def powerbi_ahorros(conn: Connection) -> list:
 def powerbi_creditos(conn: Connection) -> list:
     rows = conn.execute(text("""
         SELECT
+            fa.pksolicitud                                     AS id,
             TRIM(cr.codcuentacredito)                          AS codcuentacredito,
+            TRIM(cr.codcuentacredito)                          AS codigo_credito,
             TRIM(c.codcliente)                                 AS codcliente,
             TRIM(c.nomcliente)                                 AS cliente,
             fa.montoaprobadocredito                            AS monto_otorgado,
@@ -224,6 +226,9 @@ def powerbi_creditos(conn: Connection) -> list:
             fa.nrocuotas                                       AS plazo_meses,
             fa.diasatrasocredito                               AS dias_atraso,
             COALESCE(cal.descalificacioncrediticia, 'Normal')  AS calificacion_sbs,
+            CASE WHEN fa.flagcastigado = 'S' THEN 'Pérdida (Castigado)'
+                 ELSE COALESCE(cal.descalificacioncrediticia, 'Normal')
+            END                                                AS calificacion,
             fa.fechadesembolsocredito                          AS fecha_desembolso
         FROM dcuentacredito cr
         JOIN dcliente c ON c.pkcliente = cr.pkcliente
@@ -234,8 +239,8 @@ def powerbi_creditos(conn: Connection) -> list:
         ORDER BY cr.codcuentacredito
         LIMIT 2000
     """), {"periodo": PERIODO_CARTERA}).fetchall()
-    cols = ["codcuentacredito","codcliente","cliente","monto_otorgado","saldo_capital",
-            "pago_pendiente","tasa_tea","plazo_meses","dias_atraso","calificacion_sbs",
+    cols = ["id","codcuentacredito","codigo_credito","codcliente","cliente","monto_otorgado","saldo_capital",
+            "pago_pendiente","tasa_tea","plazo_meses","dias_atraso","calificacion_sbs","calificacion",
             "fecha_desembolso"]
     return [dict(zip(cols, r)) for r in rows]
 

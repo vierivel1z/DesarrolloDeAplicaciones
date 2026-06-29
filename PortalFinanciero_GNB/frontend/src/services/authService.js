@@ -14,8 +14,22 @@ export async function login(username, password) {
     codcliente: cliente.codcliente ?? username,
     nombre: cliente.nombre ?? username,
     pkcliente: cliente.pkcliente,
+    role: cliente.role || 'CLIENTE',
   }
   return { token, user }
+}
+
+export async function loginToken(username, token_str) {
+  const { data } = await hbApi.post('/auth/login-token', { username, token: token_str })
+  const token_jwt = data.access_token
+  const cliente = data.cliente || {}
+  const user = {
+    codcliente: cliente.codcliente ?? username,
+    nombre: cliente.nombre ?? username,
+    pkcliente: cliente.pkcliente,
+    role: cliente.role || 'CLIENTE',
+  }
+  return { token: token_jwt, user }
 }
 
 export function saveSession(token, user) {

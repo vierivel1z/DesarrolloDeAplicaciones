@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ShieldCheck, Mail, Smartphone, Lock, Image as ImageIcon, QrCode } from 'lucide-react'
 import Card from '../components/ui/Card.jsx'
-import { hbApi } from '../services/api.js'
+import hbApi from '../services/hb_api.js'
 
 export default function RegistroDigitalPage() {
   const navigate = useNavigate()

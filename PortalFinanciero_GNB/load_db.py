@@ -32,7 +32,11 @@ SQL_FILES = [
     'Sql/07_DDL_DML_mejoras_proyecto.sql',
     'Sql/08_DML_crear_castor_perez.sql',
     'Sql/10_DDL_DML_creditos_gnb.sql',
-    'Sql/11_onboarding_gnb_cuentas.sql'
+    'Sql/11_onboarding_gnb_cuentas.sql',
+    'Sql/12_DDL_DML_sbs_y_aprobaciones.sql',
+    'Sql/13_DDL_DML_usuarios_admin.sql',
+    'Sql/14_DDL_mora_gestiones_kpis.sql',
+    'Sql/15_DML_solicitudes_prueba.sql'
 ]
 
 def load_sql_file(file_path):

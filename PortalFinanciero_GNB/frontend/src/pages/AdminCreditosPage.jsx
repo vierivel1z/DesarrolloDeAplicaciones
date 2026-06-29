@@ -13,6 +13,7 @@ import {
   getAdminSolicitudDetalle,
   adminRechazarSolicitud
 } from '../services/adminService.js'
+
 import { toNumber, formatDate } from '../utils/format.js'
 import PageLayout from '../components/layout/PageLayout.jsx'
 import Card from '../components/ui/Card.jsx'
@@ -21,6 +22,12 @@ import Alert from '../components/ui/Alert.jsx'
 import Money from '../components/ui/Money.jsx'
 import Loader from '../components/ui/Loader.jsx'
 import Tabla from '../components/ui/Tabla.jsx'
+import { useHBAuth } from '../hooks/useHBAuth.js'
+
+import MakerDashboard from '../components/admin/MakerDashboard.jsx'
+import Checker1Dashboard from '../components/admin/Checker1Dashboard.jsx'
+import Checker2Dashboard from '../components/admin/Checker2Dashboard.jsx'
+import SuperadminDashboard from '../components/admin/SuperadminDashboard.jsx'
 
 const ACTIVIDADES = [
   { cod: '0111', label: '0111 — Cultivo de cereales (excepto arroz)' },
@@ -441,8 +448,11 @@ function AdminSolicitarCreditoForm() {
 }
 
 function AdminCreditosList() {
-  const navigate = useNavigate()
-  const [tab, setTab] = useState('MAKER')
+  const { user } = useHBAuth()
+  const role = user?.role || 'MAKER'
+  const isSuper = role === 'SUPERADMIN' || role === 'COMITE'
+  
+  const [tab, setTab] = useState(isSuper ? 'MAKER' : role)
 
   return (
     <PageLayout>
@@ -452,218 +462,36 @@ function AdminCreditosList() {
           <p className="bbva-page-sub">Bandejas de Evaluación, Aprobación y Desembolso</p>
         </div>
         <div className="bbva-page-actions" style={{ display: 'flex', gap: '8px' }}>
-          <button className="bbva-btn" onClick={() => navigate('/admin/creditos?action=solicitar')}>
-            <FilePlus2 size={14} /> Registrar Solicitud
-          </button>
         </div>
       </div>
 
       <div className="admin-filter-btns" style={{ marginBottom: 20 }}>
-        <button type="button" className={`admin-filter-btn ${tab === 'MAKER' ? 'active' : ''}`} onClick={() => setTab('MAKER')}>
-          1. MAKER (Analista)
-        </button>
-        <button type="button" className={`admin-filter-btn ${tab === 'CHECKER1' ? 'active' : ''}`} onClick={() => setTab('CHECKER1')}>
-          2. CHECKER 1 (Gerente)
-        </button>
-        <button type="button" className={`admin-filter-btn ${tab === 'CHECKER2' ? 'active' : ''}`} onClick={() => setTab('CHECKER2')}>
-          3. CHECKER 2 (Operaciones)
-        </button>
-        <button type="button" className={`admin-filter-btn ${tab === 'SUPERADMIN' ? 'active' : ''}`} onClick={() => setTab('SUPERADMIN')}>
-          ⚙ SUPERADMIN
-        </button>
+        {(isSuper || role === 'MAKER') && (
+          <button type="button" className={`admin-filter-btn ${tab === 'MAKER' ? 'active' : ''}`} onClick={() => setTab('MAKER')}>
+            1. MAKER (Analista)
+          </button>
+        )}
+        {(isSuper || role === 'CHECKER_1') && (
+          <button type="button" className={`admin-filter-btn ${tab === 'CHECKER_1' ? 'active' : ''}`} onClick={() => setTab('CHECKER_1')}>
+            2. CHECKER 1 (Gerente)
+          </button>
+        )}
+        {(isSuper || role === 'CHECKER_2') && (
+          <button type="button" className={`admin-filter-btn ${tab === 'CHECKER_2' ? 'active' : ''}`} onClick={() => setTab('CHECKER_2')}>
+            3. CHECKER 2 (Operaciones)
+          </button>
+        )}
+        {isSuper && (
+          <button type="button" className={`admin-filter-btn ${tab === 'SUPERADMIN' ? 'active' : ''}`} onClick={() => setTab('SUPERADMIN')}>
+            ⚙ SUPERADMIN
+          </button>
+        )}
       </div>
 
-      {tab === 'MAKER' && <BandejaMaker />}
-      {tab === 'CHECKER1' && <BandejaChecker1 />}
-      {tab === 'CHECKER2' && <BandejaChecker2 />}
-      {tab === 'SUPERADMIN' && <BandejaSuperadmin />}
+      {tab === 'MAKER' && <MakerDashboard />}
+      {tab === 'CHECKER_1' && <Checker1Dashboard />}
+      {tab === 'CHECKER_2' && <Checker2Dashboard />}
+      {tab === 'SUPERADMIN' && <SuperadminDashboard />}
     </PageLayout>
   )
 }
-
-function BandejaMaker() {
-  const [solicitudes, setSolicitudes] = useState([])
-  const [loading, setLoading] = useState(true)
-
-  // Modal / Detail states
-  const [selectedDetalle, setSelectedDetalle] = useState(null)
-  const [detalleLoading, setDetalleLoading] = useState(false)
-  const [modalOpen, setModalOpen] = useState(false)
-  const [rechazando, setRechazando] = useState(false)
-  const [desembolsando, setDesembolsando] = useState(false)
-
-  const cargar = () => {
-    setLoading(true)
-    getAdminSolicitudes().then(data => setSolicitudes(data.filter(s => s.pksolicitudestado === 1))).finally(() => setLoading(false)) // 1: Creada
-  }
-  useEffect(() => { cargar() }, [])
-
-  const handleEvaluar = async (id) => {
-    const score = prompt('Ingrese Score PD (0-100%):', '12.5')
-    if (!score) return
-    const ingreso = prompt('Ingrese Ingreso Neto Verificado (S/):', '3500')
-    if (!ingreso) return
-    const comentarios = prompt('Comentarios del analista:')
-    if (!comentarios) return
-
-    try {
-      await adminEvaluarSolicitud(id, {
-        score_pd: parseFloat(score),
-        ingreso_neto_mensual: parseFloat(ingreso),
-        comentarios_analista: comentarios
-      }, 'MAKER')
-      alert('Evaluación guardada exitosamente')
-      cargar()
-    } catch (e) {
-      alert('Error: ' + (e.response?.data?.detail || e.message))
-    }
-  }
-
-  const cols = [
-    { key: 'codsolicitud', header: 'Solicitud' },
-    { key: 'nomcliente', header: 'Cliente' },
-    { key: 'monto', header: 'Monto', render: (s) => <Money value={s.monto} /> },
-    { key: 'archivo', header: 'Sustento', render: (s) => s.archivo_sustento_path ? <a href={s.archivo_sustento_path} target="_blank" rel="noreferrer">Ver PDF</a> : 'N/A' },
-    { key: 'acciones', header: 'Acciones', render: (s) => (
-      <button className="bbva-btn-ghost sm" onClick={() => handleEvaluar(s.id)}>Evaluar (Maker)</button>
-    )}
-  ]
-
-  return (
-    <Card title="Bandeja Maker - Análisis de Solicitudes Nuevas">
-      {loading ? <Loader /> : <Tabla columns={cols} rows={solicitudes} rowKey={(row) => row.id} emptyText="No hay solicitudes pendientes de evaluación" />}
-    </Card>
-  )
-}
-
-function BandejaChecker1() {
-  const [solicitudes, setSolicitudes] = useState([])
-  const [loading, setLoading] = useState(true)
-
-  const cargar = () => {
-    setLoading(true)
-    // 2: EVALUADA_PENDIENTE_FIRMA (asumiendo que en DB es EV)
-    // Buscamos las que ya tienen DTI y Score
-    getAdminSolicitudes().then(data => setSolicitudes(data.filter(s => s.score_pd !== null && !s.otp_codigo))).finally(() => setLoading(false))
-  }
-  useEffect(() => { cargar() }, [])
-
-  const handleAprobar = async (id) => {
-    const tea = prompt('Asignar TEA Definitiva (%):', '19.99')
-    if (!tea) return
-
-    try {
-      await adminEnviarOtp(id, { tea_aprobada: parseFloat(tea) }, 'CHECKER_1')
-      alert('TEA asignada y OTP enviado al cliente exitosamente')
-      cargar()
-    } catch (e) {
-      alert('Error: ' + (e.response?.data?.detail || e.message))
-    }
-  }
-
-  const cols = [
-    { key: 'codsolicitud', header: 'Solicitud' },
-    { key: 'nomcliente', header: 'Cliente' },
-    { key: 'monto', header: 'Monto', render: (s) => <Money value={s.monto} /> },
-    { key: 'dti', header: 'DTI', render: (s) => `${s.dti_ratio}%` },
-    { key: 'score', header: 'Score PD', render: (s) => `${s.score_pd}%` },
-    { key: 'acciones', header: 'Acciones', render: (s) => (
-      <button className="bbva-btn sm" onClick={() => handleAprobar(s.id)}>Aprobar TEA y Enviar OTP</button>
-    )}
-  ]
-
-  return (
-    <Card title="Bandeja Checker 1 - Aprobación y Tasas">
-      {loading ? <Loader /> : <Tabla columns={cols} rows={solicitudes} rowKey={(row) => row.id} emptyText="No hay solicitudes por aprobar" />}
-    </Card>
-  )
-}
-
-function BandejaChecker2() {
-  const [solicitudes, setSolicitudes] = useState([])
-  const [loading, setLoading] = useState(true)
-
-  const cargar = () => {
-    setLoading(true)
-    // Buscamos las que están APROBADO_LISTO_DESEMBOLSO (AL) - asumiendo que el cliente ya firmó.
-    // Filtrar aquellas que tienen OTP pero el estado aún no es 03 (Desembolsado)
-    getAdminSolicitudes().then(data => setSolicitudes(data.filter(s => s.estado === 'APROBADO_LISTO_DESEMBOLSO'))).finally(() => setLoading(false))
-  }
-  useEffect(() => { cargar() }, [])
-
-  const handleDesembolsar = async (id) => {
-    if (!confirm('¿Confirma la transacción atómica de desembolso para esta solicitud?')) return
-    try {
-      await adminDesembolsarSolicitud(id, 'CHECKER_2')
-      alert('Desembolso atómico exitoso. Cuenta Transaccional creada y Foperaciones registrado.')
-      cargar()
-    } catch (e) {
-      alert('Error: ' + (e.response?.data?.detail || e.message))
-    }
-  }
-
-  const cols = [
-    { key: 'codsolicitud', header: 'Solicitud' },
-    { key: 'nomcliente', header: 'Cliente' },
-    { key: 'monto', header: 'Monto', render: (s) => <Money value={s.monto} /> },
-    { key: 'tea', header: 'TEA Aprobada', render: (s) => `${s.tea}%` },
-    { key: 'estado', header: 'Firma Cliente', render: (s) => <Badge estado="FIRMADO (OTP VALIDADO)" tone="green" /> },
-    { key: 'acciones', header: 'Acciones', render: (s) => (
-      <button className="bbva-btn sm" onClick={() => handleDesembolsar(s.id)}>Ejecutar Desembolso</button>
-    )}
-  ]
-
-  return (
-    <Card title="Bandeja Checker 2 - Operaciones (Desembolsos)">
-      {loading ? <Loader /> : <Tabla columns={cols} rows={solicitudes} rowKey={(row) => row.id} emptyText="No hay créditos listos para desembolso" />}
-    </Card>
-  )
-}
-
-function BandejaSuperadmin() {
-  const [form, setForm] = useState({
-    monto_min_pen: 1500,
-    monto_max_pen: 80000,
-    monto_min_usd: 500,
-    monto_max_usd: 25000,
-    tea_min: 13.00,
-    tea_max: 36.00
-  })
-
-  const handleGuardar = async (e) => {
-    e.preventDefault()
-    try {
-      await adminConfigurarParametros(form, 'SUPERADMIN')
-      alert('Parámetros globales actualizados correctamente.')
-    } catch (e) {
-      alert('Error: ' + (e.response?.data?.detail || e.message))
-    }
-  }
-
-  return (
-    <Card title="Configuración Global de Créditos">
-      <form onSubmit={handleGuardar}>
-        <div className="hb-grid-2">
-          <div className="hb-field">
-            <label>Monto Mínimo (PEN)</label>
-            <input type="number" step="0.01" className="hb-input" value={form.monto_min_pen} onChange={e => setForm({...form, monto_min_pen: parseFloat(e.target.value)})} />
-          </div>
-          <div className="hb-field">
-            <label>Monto Máximo (PEN)</label>
-            <input type="number" step="0.01" className="hb-input" value={form.monto_max_pen} onChange={e => setForm({...form, monto_max_pen: parseFloat(e.target.value)})} />
-          </div>
-        </div>
-        <div className="hb-grid-2">
-          <div className="hb-field">
-            <label>TEA Mínima (%)</label>
-            <input type="number" step="0.01" className="hb-input" value={form.tea_min} onChange={e => setForm({...form, tea_min: parseFloat(e.target.value)})} />
-          </div>
-          <div className="hb-field">
-            <label>TEA Máxima (%)</label>
-            <input type="number" step="0.01" className="hb-input" value={form.tea_max} onChange={e => setForm({...form, tea_max: parseFloat(e.target.value)})} />
-          </div>
-        </div>
-        <button type="submit" className="bbva-btn" style={{marginTop: 10}}>Guardar Parámetros</button>
-      </form>
-    </Card>
-  )

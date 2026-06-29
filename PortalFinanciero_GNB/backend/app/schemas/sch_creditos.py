@@ -9,10 +9,10 @@ class SolicitudCreditoIn(BaseModel):
     """Schema para solicitud inicial del cliente desde Homebanking."""
     numero_documento: str = Field(..., description="DNI del cliente")
     moneda: Literal["PEN", "USD"] = Field(..., description="PEN o USD")
-    monto: Decimal = Field(..., gt=0, description="Monto solicitado")
-    plazo: int = Field(..., gt=0, description="Plazo en meses")
+    monto: Decimal = Field(..., ge=500, le=80000, description="Monto solicitado")
+    plazo: int = Field(..., ge=3, le=60, description="Plazo en meses")
     archivo_sustento_url: str = Field(..., description="URL segura de Cloudinary")
-    codtipocredito: Literal["ME", "CO"] = Field("CO", description="Tipo de crédito")
+    codtipocredito: str = Field("CO", description="Tipo de crédito")
     codactividadeconomica: str = Field("0111", description="Código actividad económica")
     ingreso_neto_mensual: Decimal = Field(..., ge=0, description="Ingreso declarado por el cliente")
 

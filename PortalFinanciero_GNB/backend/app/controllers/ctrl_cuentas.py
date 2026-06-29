@@ -89,3 +89,6 @@ def cuotas_credito(conn: Connection, pkcliente: int, codcuentacredito: str) -> l
             status_code=status.HTTP_403_FORBIDDEN, detail="El crédito no pertenece al cliente"
         )
     return repo_cuentas.listar_cuotas(conn, credito["pkcuentacredito"])
+
+def listar_solicitudes(conn: Connection, pkcliente: int) -> list[dict]:
+    return repo_cuentas.listar_solicitudes(conn, pkcliente)

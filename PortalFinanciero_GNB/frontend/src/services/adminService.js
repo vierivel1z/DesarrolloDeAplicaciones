@@ -11,6 +11,11 @@ export async function getAdminStats() {
   return data
 }
 
+export async function getAdminKpisMora() {
+  const { data } = await hbApi.get('/admin/kpis-mora')
+  return data
+}
+
 /** Listado de todos los clientes del banco con conteo de productos. */
 export async function getAdminClientes() {
   const { data } = await hbApi.get('/admin/clientes')
@@ -54,6 +59,11 @@ export async function adminConfigurarParametros(payload, role = 'SUPERADMIN') {
   return data
 }
 
+export async function getAdminParametros() {
+  const { data } = await hbApi.get(`/admin/creditos/parametros`)
+  return data
+}
+
 export async function getAdminSolicitudDetalle(id) {
   const { data } = await hbApi.get(`/admin/solicitudes/${id}/detalle`)
   return data
@@ -80,24 +90,3 @@ export async function adminEjecutarEodAhorros() {
   return data
 }
 
-// ── Power BI flat exports ────────────────────────────────────────────────────
-
-export async function getPbClientes() {
-  const { data } = await hbApi.get('/admin/powerbi/clientes')
-  return data
-}
-
-export async function getPbAhorros() {
-  const { data } = await hbApi.get('/admin/powerbi/ahorros')
-  return data
-}
-
-export async function getPbCreditos() {
-  const { data } = await hbApi.get('/admin/powerbi/creditos')
-  return data
-}
-
-export async function getPbOperaciones() {
-  const { data } = await hbApi.get('/admin/powerbi/operaciones')
-  return data
-}

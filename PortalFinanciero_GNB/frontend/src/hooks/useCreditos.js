@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
-import { getCuentasCredito, getCuotas } from '../services/cuentasService.js'
+import { getCuentasCredito, getCuotas, getSolicitudesCredito } from '../services/cuentasService.js'
 import { extractError } from '../utils/format.js'
 
 // Lista de créditos del cliente.
 export function useCreditos() {
   const [creditos, setCreditos] = useState([])
+  const [solicitudes, setSolicitudes] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -12,9 +13,14 @@ export function useCreditos() {
     setLoading(true)
     setError(null)
     try {
-      setCreditos(await getCuentasCredito())
+      const [credData, solData] = await Promise.all([
+        getCuentasCredito(),
+        getSolicitudesCredito()
+      ])
+      setCreditos(credData)
+      setSolicitudes(solData)
     } catch (err) {
-      setError(extractError(err, 'No se pudieron cargar los créditos.'))
+      setError(extractError(err, 'No se pudieron cargar los créditos o solicitudes.'))
     } finally {
       setLoading(false)
     }
@@ -24,7 +30,7 @@ export function useCreditos() {
     cargar()
   }, [cargar])
 
-  return { creditos, loading, error, recargar: cargar }
+  return { creditos, solicitudes, loading, error, recargar: cargar }
 }
 
 // Cronograma de cuotas de un crédito.

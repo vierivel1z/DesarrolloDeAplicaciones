@@ -13,12 +13,24 @@ def buscar_usuario_por_username(conn: Connection, username: str) -> dict | None:
     """Busca el usuario (case-insensitive) y une dcliente para nombre/codcliente."""
     sql = text(
         """
-        SELECT u.pkusuario, u.pkcliente, u.username, u.password_hash,
+        SELECT u.pkusuario, u.pkcliente, u.username, u.password_hash, u.token_hash,
                u.intentos_fallidos, u.bloqueado, u.activo,
                TRIM(c.codcliente) AS codcliente, c.nomcliente
         FROM usuarios_homebanking u
         JOIN dcliente c ON c.pkcliente = u.pkcliente
         WHERE LOWER(u.username) = LOWER(:username)
+        """
+    )
+    row = conn.execute(sql, {"username": username}).mappings().first()
+    return dict(row) if row else None
+
+def buscar_usuario_admin_por_username(conn: Connection, username: str) -> dict | None:
+    """Busca el usuario administrador (case-insensitive)."""
+    sql = text(
+        """
+        SELECT pkusuario, username, password_hash, token_hash, role, nombre, activo
+        FROM dusuarios_admin
+        WHERE LOWER(username) = LOWER(:username)
         """
     )
     row = conn.execute(sql, {"username": username}).mappings().first()

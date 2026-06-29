@@ -12,7 +12,7 @@ import Badge from '../components/ui/Badge.jsx'
 import Alert from '../components/ui/Alert.jsx'
 
 export default function CuentasCreditoPage() {
-  const { creditos, loading, error, recargar } = useCreditos()
+  const { creditos, solicitudes, loading, error, recargar } = useCreditos()
   const navigate = useNavigate()
 
   const totalDeuda = creditos.reduce((s, c) => s + toNumber(c.pago_pendiente), 0)
@@ -36,6 +36,22 @@ export default function CuentasCreditoPage() {
         <ListChecks size={14} /> Ver cuotas
       </button>
     ) },
+  ]
+
+  const solColumns = [
+    { key: 'codsolicitud', header: 'Cod. Solicitud', render: (r) => (
+      <div className="bbva-cell-prod"><strong>{r.codsolicitud}</strong><small>Préstamo</small></div>
+    ) },
+    { key: 'fecha_solicitud', header: 'Fecha', render: (r) => formatDate(r.fecha_solicitud) },
+    { key: 'monto_solicitado', header: 'Monto Solicitado', align: 'right', render: (r) => <Money value={r.monto_solicitado} /> },
+    { key: 'plazo_meses', header: 'Plazo', align: 'center', render: (r) => `${r.plazo_meses} meses` },
+    { key: 'estado', header: 'Estado', align: 'center', render: (r) => {
+      let tone = 'blue';
+      if (r.estado.includes('RECHAZAD')) tone = 'red';
+      else if (r.estado.includes('APROBAD')) tone = 'green';
+      return <Badge estado={r.estado} tone={tone} />;
+    } },
+    { key: 'motivo_rechazo', header: 'Observaciones', render: (r) => <span style={{fontSize: '0.8rem', color: '#666'}}>{r.motivo_rechazo || '-'}</span> }
   ]
 
   return (
@@ -63,6 +79,12 @@ export default function CuentasCreditoPage() {
           </>
         )}
       </Card>
+
+      {!loading && solicitudes.length > 0 && (
+        <Card title="Mis solicitudes en curso" icon={<FilePlus2 size={18} />} style={{ marginTop: 24 }}>
+          <Tabla columns={solColumns} rows={solicitudes} rowKey={(r) => r.codsolicitud} />
+        </Card>
+      )}
     </PageLayout>
   )
 }

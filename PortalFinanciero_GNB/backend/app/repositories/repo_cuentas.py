@@ -194,3 +194,19 @@ def listar_cuotas(conn: Connection, pkcuentacredito: int) -> list[dict]:
         """
     )
     return [dict(r) for r in conn.execute(sql, {"pk": pkcuentacredito}).mappings().all()]
+
+def listar_solicitudes(conn: Connection, pkcliente: int) -> list[dict]:
+    sql = text("""
+        SELECT s.codsolicitud,
+               s.fechasolicitudcredito AS fecha_solicitud,
+               s.montosolicitudcredito AS monto_solicitado,
+               s.plazosolicitudcredito AS plazo_meses,
+               e.dessolicitudestado AS estado,
+               s.desmotivosolicitud AS motivo_rechazo
+        FROM dsolicitud s
+        JOIN dsolicitudestado e ON e.pksolicitudestado = s.pksolicitudestado
+        WHERE s.pkcliente = :pk
+          AND e.codsolicitudestado != '04'
+        ORDER BY s.fechasolicitudcredito DESC, s.codsolicitud DESC
+    """)
+    return [dict(r) for r in conn.execute(sql, {"pk": pkcliente}).mappings().all()]

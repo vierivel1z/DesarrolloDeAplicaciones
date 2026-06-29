@@ -4,12 +4,13 @@ from datetime import date
 from decimal import Decimal
 
 class GestionCobranzaCreate(BaseModel):
-    pkcuentacredito: int
-    pktipogestion: int
-    resultado: str
-    compromisopago: Optional[date] = None
-    montocomprometido: Optional[Decimal] = None
+    id_solicitud: int
+    canal_contacto: str
+    codigo_respuesta: str
+    comentarios: Optional[str] = None
+    fecha_compromiso_pago: Optional[date] = None
+    monto_comprometido: Optional[Decimal] = None
 
 class TransicionMoraRequest(BaseModel):
-    pkcuentacredito: int
+    pksolicitud: int
     tipo_transicion: str  # 'judicial' o 'castigo'

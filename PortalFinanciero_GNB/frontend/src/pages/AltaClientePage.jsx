@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { UserPlus, ArrowLeft, CheckCircle } from 'lucide-react'
 import PageLayout from '../components/layout/PageLayout.jsx'
 import Card from '../components/ui/Card.jsx'
-import { hbApi } from '../services/api.js'
+import hbApi from '../services/hb_api.js'
 
 export default function AltaClientePage() {
   const navigate = useNavigate()

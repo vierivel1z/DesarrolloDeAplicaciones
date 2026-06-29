@@ -1,4 +1,4 @@
-import api from './api'
+import api from './hb_api'
 
 export const getCarteraMora = async () => {
     const res = await api.get('/mora/cartera')

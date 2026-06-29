@@ -35,3 +35,9 @@ export async function getCuotas(codcuentacredito) {
   )
   return Array.isArray(data) ? data : []
 }
+
+// GET /cuentas/credito/solicitudes -> SolicitudCreditoOut[]
+export async function getSolicitudesCredito() {
+  const { data } = await hbApi.get('/cuentas/credito/solicitudes')
+  return Array.isArray(data) ? data : []
+}

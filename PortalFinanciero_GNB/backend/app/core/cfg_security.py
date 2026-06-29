@@ -3,6 +3,8 @@ from datetime import datetime, timedelta, timezone
 
 import bcrypt
 from jose import JWTError, jwt
+from fastapi import HTTPException, status, Depends
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from app.core.cfg_config import settings
 
@@ -39,3 +41,29 @@ def decodificar_token(token: str) -> dict | None:
         return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
     except JWTError:
         return None
+
+# ---------------------------------------------------------------------------
+# Control de Accesos por Roles (RBAC)
+# ---------------------------------------------------------------------------
+bearer_scheme = HTTPBearer()
+
+class RequireRole:
+    """Dependency para verificar que el usuario tenga uno de los roles permitidos."""
+    def __init__(self, allowed_roles: list[str]):
+        self.allowed_roles = allowed_roles
+
+    def __call__(self, creds: HTTPAuthorizationCredentials = Depends(bearer_scheme)) -> str:
+        payload = decodificar_token(creds.credentials)
+        if not payload:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token inválido o expirado",
+            )
+        
+        role = payload.get("role")
+        if not role or role not in self.allowed_roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Operación denegada. Se requiere uno de los roles: {', '.join(self.allowed_roles)}"
+            )
+        return role

@@ -4,6 +4,7 @@ import Header from './components/layout/Header.jsx'
 
 import LandingPage from './pages/LandingPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
+import LoginPasswordPage from './pages/LoginPasswordPage.jsx'
 import RegistroDigitalPage from './pages/RegistroDigitalPage.jsx'
 import CuentasPublicPage from './pages/CuentasPublicPage.jsx'
 import HomePage from './pages/HomePage.jsx'
@@ -19,9 +20,8 @@ import SolicitarCreditoPage from './pages/SolicitarCreditoPage.jsx'
 import AdminClientesPage from './pages/AdminClientesPage.jsx'
 import AltaClientePage from './pages/AltaClientePage.jsx'
 import AdminCreditosPage from './pages/AdminCreditosPage.jsx'
-import AdminPowerBiPage from './pages/AdminPowerBiPage.jsx'
 import AdminMoraPage from './pages/AdminMoraPage.jsx'
-
+import AdminParametrosPage from './pages/AdminParametrosPage.jsx'
 // Layout para las rutas autenticadas: cabecera BBVA + contenido.
 function PrivateLayout({ children }) {
   return (
@@ -40,6 +40,7 @@ export default function App() {
       {/* Públicas */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/login-password" element={<LoginPasswordPage />} />
       <Route path="/registrate" element={<RegistroDigitalPage />} />
       <Route path="/cuentas" element={<CuentasPublicPage />} />
 
@@ -62,7 +63,7 @@ export default function App() {
       <Route path="/admin/clientes/alta" element={<PrivateLayout><AltaClientePage /></PrivateLayout>} />
       <Route path="/admin/creditos" element={<PrivateLayout><AdminCreditosPage /></PrivateLayout>} />
       <Route path="/admin/mora" element={<PrivateLayout><AdminMoraPage /></PrivateLayout>} />
-      <Route path="/admin/powerbi" element={<PrivateLayout><AdminPowerBiPage /></PrivateLayout>} />
+      <Route path="/admin/parametros" element={<PrivateLayout><AdminParametrosPage /></PrivateLayout>} />
 
       <Route path="*" element={<Navigate to="/inicio" replace />} />
     </Routes>

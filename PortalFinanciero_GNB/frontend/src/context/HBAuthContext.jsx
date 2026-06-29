@@ -16,6 +16,14 @@ export function HBAuthProvider({ children }) {
     return newUser
   }, [])
 
+  const loginToken = useCallback(async (username, tokenStr) => {
+    const { token: newToken, user: newUser } = await authService.loginToken(username, tokenStr)
+    authService.saveSession(newToken, newUser)
+    setToken(newToken)
+    setUser(newUser)
+    return newUser
+  }, [])
+
   const logout = useCallback(() => {
     authService.clearSession()
     setToken(null)
@@ -28,9 +36,10 @@ export function HBAuthProvider({ children }) {
       token,
       isAuthenticated: Boolean(token),
       login,
+      loginToken,
       logout,
     }),
-    [user, token, login, logout],
+    [user, token, login, loginToken, logout],
   )
 
   return <HBAuthContext.Provider value={value}>{children}</HBAuthContext.Provider>

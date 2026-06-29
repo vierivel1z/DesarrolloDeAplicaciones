@@ -11,6 +11,7 @@ from app.schemas.sch_cuentas import (
     CuotaOut,
     DetalleAhorroResponse,
     MovimientoOut,
+    SolicitudCreditoOut,
 )
 
 router = APIRouter(prefix="/cuentas", tags=["cuentas"], dependencies=[Depends(get_cliente)])
@@ -43,6 +44,11 @@ def detalle_ahorro(
 @router.get("/credito", response_model=list[CuentaCreditoOut])
 def cuentas_credito(conn: Connection = Depends(get_db), cliente: dict = Depends(get_cliente)):
     return ctrl_cuentas.listar_creditos(conn, cliente["pkcliente"])
+
+
+@router.get("/credito/solicitudes", response_model=list[SolicitudCreditoOut])
+def solicitudes_credito(conn: Connection = Depends(get_db), cliente: dict = Depends(get_cliente)):
+    return ctrl_cuentas.listar_solicitudes(conn, cliente["pkcliente"])
 
 
 @router.get("/credito/{codcuentacredito}/cuotas", response_model=list[CuotaOut])

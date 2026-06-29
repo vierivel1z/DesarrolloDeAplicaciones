@@ -19,7 +19,13 @@ import Card from '../components/ui/Card.jsx'
 import Money from '../components/ui/Money.jsx'
 import Badge from '../components/ui/Badge.jsx'
 import Loader from '../components/ui/Loader.jsx'
-import { getAdminStats } from '../services/adminService.js'
+import { getAdminStats, getAdminKpisMora } from '../services/adminService.js'
+
+import GlobalKPIDashboard from '../components/admin/GlobalKPIDashboard.jsx'
+import MakerDashboard from '../components/admin/MakerDashboard.jsx'
+import Checker1Dashboard from '../components/admin/Checker1Dashboard.jsx'
+import Checker2Dashboard from '../components/admin/Checker2Dashboard.jsx'
+import SuperadminDashboard from '../components/admin/SuperadminDashboard.jsx'
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Paleta de colores corporativa GNB
@@ -52,12 +58,16 @@ function fmtTooltip(value) {
 // ──────────────────────────────────────────────────────────────────────────────
 function AdminDashboard() {
   const [stats, setStats] = useState(null)
+  const [moraKpis, setMoraKpis] = useState(null)
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
 
   useEffect(() => {
-    getAdminStats()
-      .then(setStats)
+    Promise.all([getAdminStats(), getAdminKpisMora()])
+      .then(([statsData, moraData]) => {
+        setStats(statsData)
+        setMoraKpis(moraData)
+      })
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [])
@@ -72,6 +82,11 @@ function AdminDashboard() {
     { label: 'Total ahorros PEN', value: fmt(stats.total_ahorro_pen), icon: TrendingUp, color: '#73b71c', bg: '#73b71c18', isMoney: false },
     { label: 'Total ahorros USD', value: `$ ${Number(stats.total_ahorro_usd).toLocaleString('es-PE', { minimumFractionDigits: 2 })}`, icon: DollarSign, color: '#2196f3', bg: '#2196f318', isMoney: false },
     { label: 'Deuda total cartera', value: fmt(stats.deuda_total), icon: TrendingDown, color: '#e53935', bg: '#e5393518', isMoney: false },
+    ...(moraKpis ? [
+      { label: 'Ratio Mora Global', value: `${moraKpis.Ratio_Mora_Global}%`, icon: AlertTriangle, color: '#ff9800', bg: '#ff980018', isMoney: false },
+      { label: 'Ratio Cartera Pesada', value: `${moraKpis.Ratio_Cartera_Pesada}%`, icon: AlertTriangle, color: '#e53935', bg: '#e5393518', isMoney: false },
+      { label: 'Cobertura Provisiones', value: `${moraKpis.Ratio_Cobertura_Provisiones}%`, icon: ShieldAlert, color: '#00bcd4', bg: '#00bcd418', isMoney: false }
+    ] : [])
   ]
 
   // Prepara datos para gráfica de distribución de productos de ahorro
@@ -197,9 +212,6 @@ function AdminDashboard() {
         <button className="admin-ql-btn admin-ql-btn--secondary" onClick={() => navigate('/admin/creditos')}>
           <CreditCard size={20} /> Ver solicitudes de crédito
         </button>
-        <button className="admin-ql-btn admin-ql-btn--secondary" onClick={() => navigate('/admin/powerbi')}>
-          <BarChart3 size={20} /> Guía de conexión Power BI
-        </button>
       </div>
     </div>
   )
@@ -212,7 +224,7 @@ function ClienteDashboard() {
   const { user } = useHBAuth()
   const navigate = useNavigate()
   const { cuentas, loading: lc } = useCuentas('ahorro')
-  const { creditos, loading: lk } = useCreditos()
+  const { creditos, solicitudes, loading: lk } = useCreditos()
 
   const totalAhorro = cuentas.reduce((s, c) => s + toNumber(c.saldo), 0)
   const totalDeuda = creditos.reduce((s, c) => s + toNumber(c.pago_pendiente), 0)
@@ -333,8 +345,8 @@ function ClienteDashboard() {
       {/* Créditos resumidos */}
       <Card title="Préstamos" icon={<CreditCard size={18} />}
         actions={<button className="bbva-link" onClick={() => navigate('/cuentas/credito')}>Ver todos <ChevronRight size={14} /></button>}>
-        {lk ? <Loader text="Cargando créditos…" /> : creditos.length === 0 ? (
-          <p className="bbva-empty">No registra créditos vigentes.</p>
+        {lk ? <Loader text="Cargando créditos…" /> : (creditos.length === 0 && solicitudes.length === 0) ? (
+          <p className="bbva-empty">No registra créditos vigentes ni solicitudes en curso.</p>
         ) : (
           <ul className="bbva-prodlist">
             {creditos.map((c) => (
@@ -349,10 +361,29 @@ function ClienteDashboard() {
                 </div>
               </li>
             ))}
-            <li className="bbva-prodlist-total">
-              <span>Saldo pendiente total</span>
-              <Money value={totalDeuda} className="bbva-money-strong" />
-            </li>
+            {solicitudes.map((s) => {
+              let tone = 'blue';
+              if (s.estado.includes('RECHAZAD')) tone = 'red';
+              else if (s.estado.includes('APROBAD')) tone = 'green';
+              return (
+                <li key={s.codsolicitud} onClick={() => navigate('/cuentas/credito')}>
+                  <div className="bbva-prod-info">
+                    <strong>{s.codsolicitud}</strong>
+                    <small>En proceso · <Badge estado={s.estado} tone={tone} /></small>
+                  </div>
+                  <div className="bbva-prod-amt">
+                    <Money value={s.monto_solicitado} />
+                    <ChevronRight size={16} />
+                  </div>
+                </li>
+              )
+            })}
+            {creditos.length > 0 && (
+              <li className="bbva-prodlist-total">
+                <span>Saldo pendiente total</span>
+                <Money value={totalDeuda} className="bbva-money-strong" />
+              </li>
+            )}
           </ul>
         )}
       </Card>
@@ -365,16 +396,23 @@ function ClienteDashboard() {
 // ──────────────────────────────────────────────────────────────────────────────
 export default function HomePage() {
   const { user } = useHBAuth()
-  const isAdmin = user?.codcliente === 'admin'
+  const isAdmin = user && user.role !== 'CLIENTE'
 
   if (isAdmin) {
+    let DashboardComponent = AdminDashboard // Fallback original
+    
+    if (user.role === 'MAKER') DashboardComponent = MakerDashboard
+    if (user.role === 'CHECKER_1') DashboardComponent = Checker1Dashboard
+    if (user.role === 'CHECKER_2') DashboardComponent = Checker2Dashboard
+    if (user.role === 'SUPERADMIN' || user.role === 'COMITE') DashboardComponent = SuperadminDashboard
+
     return (
       <PageLayout>
         <div className="bbva-hello">
-          <h1>Panel de Administración — Banco GNB</h1>
-          <p>Indicadores financieros globales y herramientas de análisis en tiempo real.</p>
+          <h1>Panel de Control — Rol: {user.role}</h1>
         </div>
-        <AdminDashboard />
+        <GlobalKPIDashboard />
+        <DashboardComponent />
       </PageLayout>
     )
   }

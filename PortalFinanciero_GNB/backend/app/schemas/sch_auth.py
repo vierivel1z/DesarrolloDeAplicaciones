@@ -1,5 +1,5 @@
-"""Schemas pydantic para autenticación."""
 from pydantic import BaseModel, Field
+from typing import Optional
 
 
 class LoginRequest(BaseModel):
@@ -7,10 +7,16 @@ class LoginRequest(BaseModel):
     password: str = Field(..., examples=["demo1234"])
 
 
+class LoginTokenRequest(BaseModel):
+    username: str = Field(..., examples=["cli000002"])
+    token: str = Field(..., examples=["token1234"])
+
+
 class ClienteInfo(BaseModel):
     codcliente: str
     nombre: str
     pkcliente: int
+    role: Optional[str] = None
 
 
 class LoginResponse(BaseModel):

@@ -7,13 +7,12 @@ import Alert from '../components/ui/Alert.jsx'
 import loginLogo from '../images/image.png'
 
 export default function LoginPage() {
-  const { login, isAuthenticated } = useHBAuth()
+  const { loginToken, isAuthenticated } = useHBAuth()
   const navigate = useNavigate()
   const location = useLocation()
   // Número de tarjeta / usuario que pudo venir desde el landing.
   const [tarjeta, setTarjeta] = useState(location.state?.tarjeta || '')
-  const [dni, setDni] = useState('')
-  const [password, setPassword] = useState('')
+  const [tokenStr, setTokenStr] = useState('')
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
 
@@ -22,22 +21,17 @@ export default function LoginPage() {
     if (isAuthenticated) navigate('/inicio', { replace: true })
   }, [isAuthenticated, navigate])
 
-  const isAdmin = tarjeta.trim().toLowerCase() === 'admin'
+  const adminRoles = ['admin', 'maker01', 'checker1_01', 'checker2_01', 'comite01', 'superadmin01']
+  const isAdmin = adminRoles.includes(tarjeta.trim().toLowerCase())
 
   const onSubmit = async (e) => {
     e.preventDefault()
     setError(null)
 
-    // El DNI se valida en el front solo para clientes normales.
-    if (!isAdmin && !/^\d{8}$/.test(dni.trim())) {
-      setError('Ingresa un DNI válido de 8 dígitos.')
-      return
-    }
-
     setLoading(true)
     try {
-      // El backend autentica con la tarjeta/usuario (codcliente) + la clave.
-      await login(tarjeta.trim(), password)
+      // El backend autentica con la tarjeta/usuario (codcliente) + el token.
+      await loginToken(tarjeta.trim(), tokenStr)
       navigate('/inicio', { replace: true })
     } catch (err) {
       setError(extractError(err, 'No se pudo iniciar sesión.'))
@@ -83,38 +77,17 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              {/* DNI: oculto para el administrador */}
-              {!isAdmin && (
-                <div className="gnb-login-field">
-                  <label htmlFor="dni">DNI</label>
-                  <div className="gnb-login-input-wrapper">
-                    <input
-                      id="dni"
-                      className="gnb-login-input"
-                      placeholder="8 dígitos"
-                      inputMode="numeric"
-                      maxLength={8}
-                      autoComplete="off"
-                      value={dni}
-                      onChange={(e) => setDni(e.target.value.replace(/\D/g, ''))}
-                      required
-                    />
-                    <Fingerprint size={18} className="gnb-login-input-icon" />
-                  </div>
-                </div>
-              )}
-
               <div className="gnb-login-field">
-                <label htmlFor="password">Clave de Internet</label>
+                <label htmlFor="tokenStr">Token Digital</label>
                 <div className="gnb-login-input-wrapper">
                   <input
-                    id="password"
+                    id="tokenStr"
                     type="password"
                     className="gnb-login-input"
                     placeholder="••••••••"
                     autoComplete="current-password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    value={tokenStr}
+                    onChange={(e) => setTokenStr(e.target.value)}
                     required
                   />
                   <Lock size={18} className="gnb-login-input-icon" />
@@ -128,21 +101,17 @@ export default function LoginPage() {
             </form>
 
             <div className="gnb-login-links-blue">
-              <button type="button" className="gnb-login-link-blue">Acceder sin token (sólo con contraseña)</button>
+              <Link to="/login-password" style={{ textDecoration: 'none' }}>
+                <button type="button" className="gnb-login-link-blue">Acceder sin token (sólo con contraseña)</button>
+              </Link>
               <button type="button" className="gnb-login-link-blue">Vinculación de token Banca por Internet</button>
               <button type="button" className="gnb-login-link-blue">Olvidé mi contraseña</button>
             </div>
 
             <div style={{ marginTop: '10px', marginBottom: '15px' }}>
-              {isAdmin ? (
                 <span style={{ fontSize: '11.5px', color: 'rgba(255, 255, 255, 0.75)' }}>
-                  Acceso de administrador: tarjeta <strong>admin</strong> · clave <strong>admin1234</strong>
+                  Prueba Token: tarjeta <strong>cli000001</strong> · token <strong>token1234</strong>
                 </span>
-              ) : (
-                <span style={{ fontSize: '11.5px', color: 'rgba(255, 255, 255, 0.75)' }}>
-                  Prueba: tarjeta <strong>cli000001</strong> · DNI <strong>12345678</strong> · clave <strong>demo1234</strong>
-                </span>
-              )}
             </div>
 
             {/* Bank Info Block matching the user's reference image */}

@@ -11,6 +11,12 @@
   --hb-amarillo: #e5b224;     /* Dorado GNB (para acentos/destacados/avisos) */
   --hb-verde-t: #5cb813;      /* Verde hoja (usado en el logo/árbol) */
   --hb-morado: #0a2e5c;       /* Mapeado a Azul profundo GNB */
+  
+  /* Nuevos colores GNB Panel Administrativo */
+  --gnb-blue: #0574AF;
+  --gnb-orange: #FAB27F;
+  --gnb-dark: #333333;
+  --gnb-bg: #F4F7F9;
 
   --hb-bg: #f8fafc;           /* Fondo gris pizarra muy claro y premium */
   --hb-text: #1e293b;         /* Texto gris oscuro pizarra */

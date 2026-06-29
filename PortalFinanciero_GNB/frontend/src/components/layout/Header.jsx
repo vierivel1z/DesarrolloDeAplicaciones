@@ -18,7 +18,7 @@ const TABS_ADMIN = [
   { label: 'Clientes', to: '/admin/clientes', match: ['/admin/clientes'], icon: Users },
   { label: 'Solicitudes', to: '/admin/creditos', match: ['/admin/creditos'], icon: CreditCard },
   { label: 'Mora/Riesgos', to: '/admin/mora', match: ['/admin/mora'], icon: ShieldAlert },
-  { label: 'Power BI', to: '/admin/powerbi', match: ['/admin/powerbi'], icon: BarChart3 },
+
 ]
 
 export default function Header() {
@@ -28,7 +28,7 @@ export default function Header() {
   const location = useLocation()
   const [menuUser, setMenuUser] = useState(false)
 
-  const isAdmin = user?.codcliente === 'admin'
+  const isAdmin = user && user.role !== 'CLIENTE'
   const TABS = isAdmin ? TABS_ADMIN : TABS_CLIENTE
 
   useEffect(() => { setMenuUser(false) }, [location.pathname])

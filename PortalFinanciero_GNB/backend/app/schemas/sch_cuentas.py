@@ -91,3 +91,12 @@ class DetalleAhorroResponse(BaseModel):
     cts: CtsDetalle | None = None
     ahorro_programado: AhorroProgramadoDetalle | None = None
     mensaje: str | None = None     # p.ej. para Ahorro Corriente sin detalle extra
+
+
+class SolicitudCreditoOut(BaseModel):
+    codsolicitud: str
+    fecha_solicitud: date
+    monto_solicitado: Decimal
+    plazo_meses: int
+    estado: str
+    motivo_rechazo: str | None = None

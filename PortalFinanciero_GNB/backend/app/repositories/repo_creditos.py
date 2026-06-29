@@ -24,13 +24,50 @@ MAPA_TIPO_CREDITO = {
     "YAPE": "03"
 }  # ME=Microempresa, CO=Consumo
 
+def consultar_semaforo_sbs(conn: Connection, dni: str) -> int:
+    row = conn.execute(
+        text("SELECT semaforo FROM sbs_central_riesgo WHERE dni = :dni"),
+        {"dni": dni}
+    ).scalar()
+    return int(row) if row is not None else 0
+
+def obtener_info_cliente_elegibilidad(conn: Connection, pkcliente: int) -> dict:
+    row = conn.execute(
+        text("""
+            SELECT fechanacimiento, fecha_ingreso_laboral, tipo_trabajador, numerodocumentoidentidad
+            FROM dcliente
+            WHERE pkcliente = :pk
+        """),
+        {"pk": pkcliente}
+    ).mappings().first()
+    return dict(row) if row else {}
+
+def registrar_firma_checker(conn: Connection, pksolicitud: int, nivel: int, usuario: str) -> None:
+    if nivel == 1:
+        conn.execute(
+            text("UPDATE dsolicitud SET firma_checker1_fecha = NOW(), firma_checker1_user = :u WHERE pksolicitud = :pk"),
+            {"u": usuario, "pk": pksolicitud}
+        )
+    elif nivel == 2:
+        conn.execute(
+            text("UPDATE dsolicitud SET firma_checker2_fecha = NOW(), firma_checker2_user = :u WHERE pksolicitud = :pk"),
+            {"u": usuario, "pk": pksolicitud}
+        )
+    conn.commit()
+
+def actualizar_estado_solicitud(conn: Connection, pksolicitud: int, cod_estado: str) -> None:
+    pkest = _pk_estado_solicitud(conn, cod_estado)
+    if pkest:
+        conn.execute(text("UPDATE dsolicitud SET pksolicitudestado = :est WHERE pksolicitud = :pk"), {"est": pkest, "pk": pksolicitud})
+        conn.commit()
+
 def listar_solicitudes(conn: Connection) -> list[dict]:
     """Lista todas las solicitudes de crédito."""
     sql = text(
         """
         SELECT s.pksolicitud as id, s.codsolicitud, s.pkcliente, c.nomcliente, c.numerodocumentoidentidad,
                s.montosolicitudcredito as monto, s.plazosolicitudcredito as plazo, s.fechasolicitudcredito as fecha,
-               e.dessolicitudestado as estado, s.pksolicitudestado,
+               e.dessolicitudestado as estado, s.pksolicitudestado, e.codsolicitudestado as codestado,
                s.pknivelaprobacion, s.desmotivosolicitud, s.archivo_sustento_path,
                s.score_pd, s.dti_ratio, s.tasainterescompensatoria as tea, s.otp_codigo
         FROM dsolicitud s
@@ -286,38 +323,39 @@ def evaluar_solicitud(conn: Connection, pksolicitud: int) -> dict:
     tasa_sd = Decimal("0.000738")
     tasa_itf = Decimal("0.00005")
 
-    for _ in range(plazo):
+    for n in range(1, plazo + 1):
         fecha_pago = fecha_pago + relativedelta(months=1)
         try:
             fecha_pago = fecha_pago.replace(day=dia_pago)
         except ValueError:
             fecha_pago = fecha_pago + relativedelta(day=31)
 
-        interes = round(saldo * tem, 2)
-        capital = round(cuota_pura - interes, 2)
-        
-        if saldo - capital < 0 or _ == plazo - 1:
-            capital = saldo
-            cuota_pura = capital + interes
+        I = round(saldo * tem, 2)
+        if n == plazo:
+            A = saldo
+            cuota_pura = A + I
+        else:
+            A = round(cuota_pura - I, 2)
+            if saldo - A < 0:
+                A = saldo
+                cuota_pura = A + I
 
-        saldo -= capital
+        # SD sobre el capital remanente MP
+        SD = round(saldo * tasa_sd, 2)
+        ITF = round((cuota_pura + SD) * tasa_itf, 2)
+        C = round(cuota_pura + SD + ITF, 2)
         
-        # Calcular SD sobre el saldo al inicio del mes (antes de descontar el capital)
-        # El saldo en este punto ya ha sido restado del capital para la próxima iteración,
-        # así que usamos el saldo_anterior
-        saldo_anterior = saldo + capital
-        sd = round(saldo_anterior * tasa_sd, 2)
-        itf = round((cuota_pura + sd) * tasa_itf, 2)
+        # Fórmula SBS: A = C - SD - I - ITF
+        A = C - SD - I - ITF
+        saldo -= A
         
-        cuota_total = round(cuota_pura + sd + itf, 2)
-
         cronograma.append({
-            "nrocuota": len(cronograma) + 1,
+            "nrocuota": n,
             "fecha_vencimiento": fecha_pago.strftime("%Y-%m-%d"),
-            "monto_cuota": cuota_total,
-            "capital": capital,
-            "interes": interes,
-            "saldo_capital": saldo
+            "monto_cuota": C,
+            "capital": A,
+            "interes": I,
+            "saldo_capital": max(Decimal('0.0'), saldo)
         })
     return {"cronograma": cronograma, "monto_total": sum(c["monto_cuota"] for c in cronograma)}
 
@@ -356,13 +394,15 @@ def desembolsar_solicitud(conn: Connection, pksolicitud: int) -> dict:
         text('''
         INSERT INTO fcuentaahorro (
             periododia, pkcuentaahorro, pkproductoahorro, pktipocuentaahorro,
-            montosaldocapitaltotal, montosaldodisponible, pkcliente, pkagencia
+            montosaldocapitaltotal, montosaldodisponible_ac, pkcliente, pkagencia,
+            pkmoneda, pkestadocuenta, fechaaperturacuenta
         ) VALUES (
             20260202, :pkah, :pkprod, :pktipo,
-            0.0, 0.0, :cli, 1
+            0.0, 0.0, :cli, 1,
+            :mon, 1, NOW()
         )
         '''),
-        {"pkah": pkcuenta_tec, "pkprod": pkproducto_ah, "pktipo": pktipotc, "cli": sol["pkcliente"]}
+        {"pkah": pkcuenta_tec, "pkprod": pkproducto_ah, "pktipo": pktipotc, "cli": sol["pkcliente"], "mon": sol["pkmoneda"]}
     )
 
     # Crear cuenta credito
@@ -484,7 +524,7 @@ def obtener_detalle_solicitud(conn: Connection, pksolicitud: int) -> dict:
                s.fechasolicitudcredito as fecha, s.tasainterescompensatoria as tea,
                s.diafechafija as dia_pago, s.fechaaprobacioncredito as fecha_desembolso,
                s.destiposolicitud, s.pksolicitudestado, e.dessolicitudestado as estado,
-               p.destipoproducto as producto_tipo, p.destiposubproducto as producto_subtipo,
+               p.destipocredito as producto_tipo, p.dessubproducto as producto_subtipo,
                s.pkactividadeconomicasolicitud as pkactividad
         FROM dsolicitud s
         JOIN dsolicitudestado e ON e.pksolicitudestado = s.pksolicitudestado

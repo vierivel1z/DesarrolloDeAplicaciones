@@ -8,29 +8,37 @@ from app.repositories import repo_auth
 
 
 def login(conn: Connection, username: str, password: str) -> dict:
-    if username.lower() == "admin":
-        if password == "admin1234":
-            token = crear_access_token(
-                {
-                    "sub": "admin",
-                    "tipo": "admin",
-                    "pkcliente": 0,
-                    "nombre": "Administrador GNB",
-                }
-            )
-            return {
-                "access_token": token,
-                "token_type": "bearer",
-                "expires_in_min": settings.ACCESS_TOKEN_EXPIRE_MINUTES,
-                "cliente": {
-                    "codcliente": "admin",
-                    "nombre": "Administrador GNB",
-                    "pkcliente": 0,
-                },
+    # 1. Buscar en administradores
+    admin = repo_auth.buscar_usuario_admin_por_username(conn, username)
+    if admin:
+        if admin["activo"] != "S":
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Usuario administrador inactivo")
+        
+        if not verificar_password(password, admin["password_hash"]):
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Credenciales inválidas")
+            
+        token = crear_access_token(
+            {
+                "sub": admin["username"],
+                "tipo": "admin",
+                "role": admin["role"],
+                "pkcliente": 0,
+                "nombre": admin["nombre"],
             }
-        else:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Credenciales de administrador inválidas")
+        )
+        return {
+            "access_token": token,
+            "token_type": "bearer",
+            "expires_in_min": settings.ACCESS_TOKEN_EXPIRE_MINUTES,
+            "cliente": {
+                "codcliente": admin["username"],
+                "nombre": admin["nombre"],
+                "pkcliente": 0,
+                "role": admin["role"]
+            },
+        }
 
+    # 2. Buscar en clientes (Homebanking)
     usuario = repo_auth.buscar_usuario_por_username(conn, username)
     if usuario is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Credenciales inválidas")
@@ -53,13 +61,14 @@ def login(conn: Connection, username: str, password: str) -> dict:
             detalle = f"Credenciales inválidas. Intentos restantes: {restantes}"
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=detalle)
 
-    # Login exitoso
+    # Login exitoso cliente
     repo_auth.registrar_login_exitoso(conn, usuario["pkusuario"])
 
     token = crear_access_token(
         {
             "sub": usuario["codcliente"],
             "tipo": "cliente",
+            "role": "CLIENTE",
             "pkcliente": usuario["pkcliente"],
             "nombre": usuario["nomcliente"],
         }
@@ -72,5 +81,84 @@ def login(conn: Connection, username: str, password: str) -> dict:
             "codcliente": usuario["codcliente"],
             "nombre": usuario["nomcliente"],
             "pkcliente": usuario["pkcliente"],
+            "role": "CLIENTE"
+        },
+    }
+
+def login_token(conn: Connection, username: str, token_str: str) -> dict:
+    # 1. Buscar en administradores
+    admin = repo_auth.buscar_usuario_admin_por_username(conn, username)
+    if admin:
+        if admin["activo"] != "S":
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Usuario administrador inactivo")
+        
+        if not admin.get("token_hash") or not verificar_password(token_str, admin["token_hash"]):
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token inválido")
+            
+        token_jwt = crear_access_token(
+            {
+                "sub": admin["username"],
+                "tipo": "admin",
+                "role": admin["role"],
+                "pkcliente": 0,
+                "nombre": admin["nombre"],
+            }
+        )
+        return {
+            "access_token": token_jwt,
+            "token_type": "bearer",
+            "expires_in_min": settings.ACCESS_TOKEN_EXPIRE_MINUTES,
+            "cliente": {
+                "codcliente": admin["username"],
+                "nombre": admin["nombre"],
+                "pkcliente": 0,
+                "role": admin["role"]
+            },
+        }
+
+    # 2. Buscar en clientes (Homebanking)
+    usuario = repo_auth.buscar_usuario_por_username(conn, username)
+    if usuario is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token inválido")
+
+    if usuario["activo"] != "S":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Usuario inactivo")
+    if usuario["bloqueado"] == "S":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Usuario bloqueado por intentos fallidos. Contacte a la caja.",
+        )
+
+    if not usuario.get("token_hash") or not verificar_password(token_str, usuario["token_hash"]):
+        intentos = repo_auth.registrar_login_fallido(conn, usuario["pkusuario"])
+        restantes = max(0, repo_auth.MAX_INTENTOS - intentos)
+        detalle = "Token inválido"
+        if restantes == 0:
+            detalle = "Token inválido. Usuario bloqueado por exceder intentos."
+        else:
+            detalle = f"Token inválido. Intentos restantes: {restantes}"
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=detalle)
+
+    # Login exitoso cliente
+    repo_auth.registrar_login_exitoso(conn, usuario["pkusuario"])
+
+    token_jwt = crear_access_token(
+        {
+            "sub": usuario["codcliente"],
+            "tipo": "cliente",
+            "role": "CLIENTE",
+            "pkcliente": usuario["pkcliente"],
+            "nombre": usuario["nomcliente"],
+        }
+    )
+    return {
+        "access_token": token_jwt,
+        "token_type": "bearer",
+        "expires_in_min": settings.ACCESS_TOKEN_EXPIRE_MINUTES,
+        "cliente": {
+            "codcliente": usuario["codcliente"],
+            "nombre": usuario["nomcliente"],
+            "pkcliente": usuario["pkcliente"],
+            "role": "CLIENTE"
         },
     }

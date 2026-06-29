@@ -2,8 +2,8 @@ import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FilePlus2, ArrowLeft, Clock, UploadCloud } from 'lucide-react'
 import { useSolicitudCredito } from '../hooks/useOperaciones.js'
-import { toNumber } from '../utils/format.js'
-import api from '../services/api.js'
+import { toNumber, extractError } from '../utils/format.js'
+import api from '../services/hb_api.js'
 import PageLayout from '../components/layout/PageLayout.jsx'
 import Card from '../components/ui/Card.jsx'
 import Money from '../components/ui/Money.jsx'
@@ -107,7 +107,7 @@ export default function SolicitarCreditoPage() {
       })
     } catch (err) {
       setUploading(false)
-      setValidacion(err.response?.data?.detail || 'Error al procesar la solicitud.')
+      setValidacion(extractError(err, 'Error al procesar la solicitud.'))
     }
   }
 
