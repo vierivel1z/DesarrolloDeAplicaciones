@@ -369,7 +369,10 @@ def desembolsar_solicitud(conn: Connection, pksolicitud: int) -> dict:
         raise ValueError("Solicitud no encontrada")
 
     # a) Cuenta Transaccional
+    # Buscar tipo TC; si no existe usar el primero disponible (fallback robusto)
     pktipotc = conn.execute(text("SELECT pktipocuentaahorro FROM dtipocuentaahorro WHERE codtipocuentaahorro='TC'")).scalar()
+    if pktipotc is None:
+        pktipotc = conn.execute(text("SELECT MIN(pktipocuentaahorro) FROM dtipocuentaahorro")).scalar() or 1
     
     # Crear dcuentaahorro tecnica
     import random
@@ -477,28 +480,29 @@ def desembolsar_solicitud(conn: Connection, pksolicitud: int) -> dict:
     ).scalar()
     
     if cuenta_ahorro:
+        # BUG FIX: columna correcta es montosaldodisponible_ac (no montosaldodisponible)
         conn.execute(
-            text("UPDATE fcuentaahorro SET montosaldocapitaltotal = montosaldocapitaltotal + :monto, montosaldodisponible = montosaldodisponible + :monto WHERE pkcuentaahorro = :pkah"),
+            text("UPDATE fcuentaahorro SET montosaldocapitaltotal = montosaldocapitaltotal + :monto, montosaldodisponible_ac = montosaldodisponible_ac + :monto WHERE pkcuentaahorro = :pkah"),
             {"monto": sol["montosolicitudcredito"], "pkah": cuenta_ahorro}
         )
         
-        # c) foperaciones
-        glosa = f"DESEMBOLSO PRÉSTAMO PERSONAL GNB NRO-{pksolicitud}"
+        # c) foperaciones — glosa_operacion no existe en el DDL base;
+        #    se usa codseckar (4 chars) para identificar la operación.
         conn.execute(
             text('''
             INSERT INTO foperaciones (
                 codtipkar, pkcuentacredito, pkcuentaahorro, codkardex, pkconceptooperacion,
                 fechahoraoperacion, periododia, pktipooperacion, pkmoneda,
-                pkagenciaorigen, codtipoegresoingreso, montooperacion, glosa_operacion
+                pkagenciaorigen, codtipoegresoingreso, montooperacion, codseckar
             ) VALUES (
                 'DE', :pkcc, :pkah, 'DESEMBOLSO', 1,
                 now(), 20260202, 1, :pkmon,
-                :age, 'I', :monto, :glosa
+                :age, 'I', :monto, 'DESB'
             )
             '''),
             {
                 "pkcc": pkcuentacredito, "pkah": cuenta_ahorro, "pkmon": pkmoneda, "age": pkagencia,
-                "monto": sol["montosolicitudcredito"], "glosa": glosa
+                "monto": sol["montosolicitudcredito"]
             }
         )
 
