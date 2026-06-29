@@ -105,7 +105,7 @@
 **Quiero** autenticarme en la Banca por Internet de forma segura mediante credenciales y claves temporales  
 **Para** realizar consultas o gestionar solicitudes de crédito según mi tipo de rol.
 - **Criterio 1:** Si el usuario ingresa por la ruta de cliente, debe autenticarse usando su tarjeta/usuario más su Token Digital dinámico de 6 dígitos, o alternativamente con su Clave de Internet.
-- **Criterio 2:** Si el usuario es de rol administrativo (`MAKER`, `CHECKER_1`, `CHECKER_2`, `SUPERADMIN`), ingresará con su cuenta y clave de red corporativa corporativa para ser dirigido a su respectivo Panel Administrativo.
+- **Criterio 2:** Si el usuario es de rol administrativo (`MAKER`, `CHECKER_1`, `CHECKER_2`, `SUPERADMIN`), ingresará con su cuenta y clave de red corporativa para ser dirigido a su respectivo Panel Administrativo.
 
 ---
 
@@ -147,7 +147,7 @@
 - **Criterio 1:** El cliente especifica el monto, el plazo y adjunta su documento de sustento.
 - **Criterio 2:** El frontend sube el documento a la nube de Cloudinary a través de la ruta `/creditos/upload-documento` y guarda la URL segura retornada (`secure_url`) junto con los datos de la solicitud en la tabla `dsolicitud` bajo el estado `1` (Ingresada).
 
-#### HU-07 — Evaluation del Analista de Riesgos (MAKER)
+#### HU-07 — Evaluación del Analista de Riesgos (MAKER)
 **Como** analista de riesgos (Maker)  
 **Quiero** calificar de forma restrictiva la capacidad de pago del cliente y su perfil SBS  
 **Para** decidir de manera objetiva si la solicitud debe continuar en el flujo de aprobación.
@@ -170,9 +170,11 @@
 - **Criterio 1:** Para solicitudes Nivel 3 en estado `PENDIENTE_FIRMA_COMITE`, el Checker 2 puede firmar como Comité para pasarlas a listas para desembolso.
 - **Criterio 2:** Al presionar "Ejecutar Desembolso" en una solicitud `APROBADO_LISTO_DESEMBOLSO`, el sistema ejecuta una transacción atómica que:
   - Crea una cuenta `TRANSACCIONAL_CREDITO` (11 dígitos, CCI prefijo `053`).
-  - Abona la suma del capital neto en la cuenta.
-  - Registra el movimiento contable en `foperaciones` con glosa reglamentaria.
-  - Cambia el estado a `"03"` (Desembolsado).
+  - Abona la suma del capital neto en la cuenta de ahorros principal del cliente.
+  - Registra el movimiento contable en `foperaciones` con `codtipkar='DE'` y `codseckar='DESB'`.
+  - Genera el cronograma de cuotas completo en `fplanpagomes` con las fórmulas SBS.
+  - Cambia el estado a `"03"` (Desembolsado) y vincula la cuenta transaccional en `dsolicitud`.
+- **Criterio 3 (Trazabilidad):** La operación queda registrada en `foperaciones` con `codkardex='DESEMBOLSO'`, identificable por el `pkcuentacredito` y el `pkcuentaahorro` destino, permitiendo auditoría completa de la inyección de capital.
 
 ---
 
@@ -184,6 +186,7 @@
 **Para** reflejar la morosidad real en el sistema bancario.
 - **Criterio 1:** El batch calcula los días de mora de las cuotas vencidas y recalcula la calificación SBS del cliente.
 - **Criterio 2:** Si los días de atraso de un crédito superan los 30 días, el sistema establece a `0` los `puntos_recompensas` del deudor en `dcliente` de forma irreversible.
+- **Criterio 3 (Trazabilidad EOD Ahorros):** El proceso EOD de la Cuenta Rolando inserta un registro en `foperaciones` por cada abono diario de intereses, con `codkardex='CAPITALIZACION_EOD'`, `codtipkar='AB'` y `codseckar='EODG'`, dejando auditoría contable completa de cada capitalización nocturna.
 
 #### HU-11 — Recuperación Judicial (CHECKER 2)
 **Como** gestor de cobranzas (Checker 2)  
@@ -198,6 +201,7 @@
 **Para** sincerar los estados financieros castigando deudas sin valor de recupero.
 - **Criterio 1:** Solo se listan cuentas con mora $> 180$ días.
 - **Criterio 2:** Al autorizar, se ejecuta una transacción que lleva a `0.00` el saldo capital en `fagcuentacredito`, marca `flagcastigado = 'S'`, registra el castigo en `foperaciones` con la glosa oficial, y coloca el estado en `"05"` (Castigado).
+- **Criterio 3 (Trazabilidad):** El castigo queda registrado en `foperaciones` con `codkardex='CASTIGO'`, `codtipkar='DE'` y glosa `'CASTIGO DE CARTERA CREDITICIA AUTORIZADO POR DIRECTORIO'`, constituyendo el asiento contable oficial irreversible del banco.
 
 ---
 
@@ -214,9 +218,11 @@
 | **RF-07** | `Admin` | `id_solicitud` (Maker) | Aprobación / Rechazo | Evalúa filtros mínimos de elegibilidad. Calcula DTI. Si $DTI>40\%$ o SBS $\ge 2$, se bloquea la aprobación y permite el rechazo a estado `02`. |
 | **RF-08** | `Admin` | `id_solicitud`, `tea` (Checker 1) | Simulación + OTP | Valida TEA (13%-36%), genera la tabla francesa y envía el OTP por correo al cliente. |
 | **RF-09** | `Cred` | `id_solicitud`, `otp` (Cliente) | Contrato Firmado | Valida el OTP del correo y cambia el estado a `APROBADO_LISTO_DESEMBOLSO`. |
-| **RF-10** | `Admin` | `id_solicitud` (Checker 2) | Desembolso exitoso | Transacción que crea la cuenta transaccional (CCI con prefijo `053`), abona los fondos e inserta registro en `foperaciones` en estado `03`. |
+| **RF-10** | `Admin` | `id_solicitud` (Checker 2) | Desembolso exitoso | Transacción atómica que crea la cuenta transaccional (CCI con prefijo `053`), genera cronograma en `fplanpagomes`, abona fondos en `fcuentaahorro`, asienta `foperaciones` con `codkardex='DESEMBOLSO'` y actualiza estado a `03`. |
 | **RF-11** | `Admin` | `id_solicitud` (Checker 2) | Crédito en Judicial | Cambia el estado a `"04"` y coloca `flagjudicial = 'S'` si la mora es $\ge 121$ días. |
-| **RF-12** | `Admin` | `id_solicitud` (Superadmin) | Crédito Castigado | Transacción contable que coloca la deuda en `0.00`, marca `flagcastigado = 'S'` y asienta la baja en `foperaciones` en estado `05`. |
+| **RF-12** | `Admin` | `id_solicitud` (Superadmin) | Crédito Castigado | Transacción contable que coloca la deuda en `0.00`, marca `flagcastigado = 'S'` y asienta la baja en `foperaciones` con `codkardex='CASTIGO'` en estado `05`. |
+| **RF-13** | `Batch` | Cron nocturno (EOD) | Intereses abonados | Capitaliza intereses diarios de cuentas `AHORRO_ROLANDO` usando $i_d = (1+TEA/100)^{1/360}-1$ y asienta cada abono en `foperaciones` con `codkardex='CAPITALIZACION_EOD'`. |
+| **RF-14** | `Batch` | Cron nocturno (EOD Mora) | Mora actualizada | Calcula `IM = (i_mora × días / 360) × A` sobre cuotas vencidas, actualiza `montomoraprogramado` en `fplanpagomes` y reclasifica la categoría SBS del deudor. |
 
 ---
 
@@ -232,3 +238,63 @@
 - **RN-05 (SBS Central de Riesgos):** Si el deudor presenta una calificación del semáforo de riesgo de la SBS $\ge 2$ (Deficiente, Dudoso o Pérdida), la admisión automática queda totalmente bloqueada.
 - **RN-06 (Penalización Recompensas):** Si el deudor se atrasa en sus pagos más de 30 días, el batch nocturno EOD pondrá a `0` sus puntos de recompensas de lealtad de forma permanente e irreversible.
 - **RN-07 (Castigos Contables):** Las cuentas a castigar deben registrar una mora acumulada `diasatrasocredito > 180` días y contar con aprobación de Directorio (`SUPERADMIN`).
+- **RN-08 (Inmutabilidad del Kardex):** Todo movimiento monetario del sistema (desembolso, pago de cuota, transferencia, capitalización EOD, castigo) genera un registro de solo inserción en `foperaciones`. Este registro es inmutable: no se actualiza ni elimina, garantizando la trazabilidad contable y el cumplimiento del Reglamento de Gestión de Riesgo Operacional de la SBS.
+- **RN-09 (Firma Checker 1 previa al Checker 2):** Para créditos de Nivel 3 (> S/ 50,000), el Checker 2 no puede ejecutar el desembolso si `firma_checker1_user` está vacío en `dsolicitud`. El sistema lanza un `HTTP 400` bloqueando la operación hasta obtener la primera firma.
+- **RN-10 (TEA dentro de rango vigente):** La Tasa Efectiva Anual asignada por el Checker 1 debe estar estrictamente dentro del rango parametrizable definido en `dparametros_credito` (actualmente **13% – 36%**). Valores fuera de rango generan un `HTTP 400` automático del core.
+
+---
+
+## 7. Ciclo de Vida del Crédito — Estados y Transiciones
+
+| Código Estado | Descripción | Rol que ejecuta la transición | Tabla afectada |
+|---|---|---|---|
+| `01` / `EN` | Ingresada | Cliente (Homebanking) | `dsolicitud` |
+| `02` / `RE` | Rechazada | Maker | `dsolicitud` |
+| `EV` | Evaluada — Pendiente Firma | Maker | `dsolicitud` |
+| `EF` | Esperando Firma Cliente | Checker 1 | `dsolicitud` |
+| `AL` | Aprobado — Listo Desembolso | Cliente (OTP) / Comité | `dsolicitud` |
+| `FC` | Pendiente Firma Comité | Checker 1 (Nivel 3) | `dsolicitud` |
+| `03` | Desembolsado | Checker 2 | `dsolicitud`, `fagcuentacredito`, `fplanpagomes`, `foperaciones` |
+| `04` | Judicial | Checker 2 | `fagcuentacredito`, `dsolicitud` |
+| `05` | Castigado | Superadmin | `fagcuentacredito`, `dsolicitud`, `foperaciones` |
+
+---
+
+## 8. Trazabilidad — Matriz HU ↔ RF ↔ Endpoint ↔ Código
+
+| Historia de Usuario | Requerimiento Funcional | Endpoint (FastAPI) | Controlador | Repositorio / Función |
+|---|---|---|---|---|
+| HU-01 (Onboarding 5 pasos) | RF-02, RF-03, RF-04 | `POST /registro/onboarding/*` | `ctrl_onboarding.py` | `repo_auth.py` |
+| HU-02 (Login) | RF-01 | `POST /auth/login` | `ctrl_auth.py` | `repo_auth.py` |
+| HU-03 (Consulta cuentas) | — | `GET /cuentas/ahorro` | `ctrl_cuentas.py` | `repo_cuentas.py` |
+| HU-04 (Transferencias) | — | `POST /operaciones/transferencia` | `ctrl_operaciones.py` | `repo_operaciones.py → foperaciones` |
+| HU-05 (Pago cuotas) | — | `POST /operaciones/pago-cuota` | `ctrl_operaciones.py` | `repo_operaciones.py → fplanpagomes, foperaciones` |
+| HU-06 (Solicitud crédito) | RF-05, RF-06 | `POST /creditos/upload-documento`, `POST /creditos/solicitar` | `ctrl_creditos.py`, `ctrl_cloudinary.py` | `repo_creditos.py → dsolicitud` |
+| HU-07 (Evaluación Maker) | RF-07 | `POST /admin/creditos/{id}/evaluar` | `ctrl_creditos.evaluar_credito()` | `repo_creditos.py → dsolicitud.dti_ratio` |
+| HU-08 (Firma Checker 1) | RF-08, RF-09 | `POST /admin/creditos/{id}/aprobar`, `POST /creditos/{id}/firmar-contrato` | `ctrl_creditos.gestionar_aprobacion()`, `ctrl_creditos.validar_otp()` | `repo_creditos.py → dsolicitud.otp_codigo` |
+| HU-09 (Desembolso Checker 2) | RF-10 | `POST /admin/creditos/{id}/desembolsar` | `ctrl_creditos.desembolsar()` | `repo_creditos.desembolsar_solicitud()` → `fplanpagomes`, `fagcuentacredito`, `foperaciones` |
+| HU-10 (EOD Ahorros) | RF-13 | `POST /admin/eod/capitalizar` | `ctrl_eod_batch.capitalizar_ahorro_rolando()` | `fcuentaahorro`, `foperaciones (CAPITALIZACION_EOD)` |
+| HU-10 (EOD Mora) | RF-14 | `POST /admin/eod/ahorros` | `ctrl_mora.procesar_fin_de_dia_mora()` | `fplanpagomes.montomoraprogramado`, `fagcuentacredito.diasatrasocredito` |
+| HU-11 (Judicial) | RF-11 | `POST /admin/creditos/{id}/derivar-judicial` | `ctrl_mora.aplicar_transicion("judicial")` | `fagcuentacredito.flagjudicial`, `dsolicitud` |
+| HU-12 (Castigo) | RF-12 | `POST /admin/creditos/{id}/castigar` | `ctrl_mora.aplicar_transicion("castigo")` | `fagcuentacredito`, `foperaciones (CASTIGO)` |
+
+---
+
+## 9. Trazabilidad del Kardex Contable (`foperaciones`)
+
+Toda operación financiera del sistema genera un registro inmutable en `foperaciones`. La siguiente tabla define los valores de trazabilidad de cada tipo de evento:
+
+| Evento | `codtipkar` | `codkardex` | `codseckar` | `codtipoegresoingreso` | Tablas impactadas |
+|---|---|---|---|---|---|
+| Desembolso de préstamo | `'DE'` | `'DESEMBOLSO'` | `'DESB'` | `'I'` (Ingreso en ahorro) | `dsolicitud`, `fagcuentacredito`, `fplanpagomes`, `dcuentaahorro` |
+| Capitalización EOD Rolando | `'AB'` | `'CAPITALIZACION_EOD'` | `'EODG'` | `'I'` | `fcuentaahorro.montosaldodisponible_ac` |
+| Castigo de cartera | `'DE'` | `'CASTIGO'` | — | `'E'` (Egreso contable) | `fagcuentacredito.montosaldocapital → 0`, `dsolicitud → estado 05` |
+| Transferencia entre cuentas | `'TR'` | `'TRANSFERENCIA'` | — | `'E'` origen / `'I'` destino | `fcuentaahorro` (2 registros) |
+| Pago de cuota | `'PA'` | `'PAGO_CUOTA'` | — | `'E'` | `fplanpagomes.codestadocuota → 'PA'`, `fcuentaahorro` |
+
+> **Clave de auditoría:** Para rastrear cualquier movimiento contable de una cuenta específica, ejecutar:
+> ```sql
+> SELECT * FROM foperaciones
+> WHERE pkcuentacredito = :pkcc OR pkcuentaahorro = :pkah
+> ORDER BY fechahoraoperacion DESC;
+> ```
